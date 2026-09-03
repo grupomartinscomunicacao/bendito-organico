@@ -1,0 +1,110 @@
+// =============================================================================
+// Bendito Orgânico — brand tokens
+// =============================================================================
+//
+// The palette is fed into Bootstrap's own Sass variables *before* Bootstrap is
+// imported, so every component (buttons, alerts, badges, focus rings, links)
+// is generated in the brand's colours instead of being overridden afterwards
+// with a pile of !important.
+
+// --- Palette -----------------------------------------------------------------
+
+$brand-primary:    #11411b; // Deep leaf — navbar, headings, institutional
+$brand-secondary:  #2e7d32; // Field green — links, positive states
+$brand-highlight:  #5fae45; // Fresh sprout — cards, icons, accents
+$brand-accent:     #e8872e; // Harvest orange — CTAs, promos, alerts
+
+$brand-cream:      #fbfaf5;
+$brand-sand:       #f2efe4;
+$brand-bark:       #2f2a24;
+
+// --- Bootstrap theme map ------------------------------------------------------
+
+$primary:    $brand-primary;
+$secondary:  $brand-secondary;
+$success:    $brand-secondary;
+$info:       #2b6cb0;
+$warning:    $brand-accent;
+$danger:     #c0392b;
+$light:      $brand-cream;
+$dark:       $brand-bark;
+
+// Two extras that carry the brand into Bootstrap's colour utilities, so
+// `.btn-accent`, `.text-bg-highlight`, `.border-accent` all exist.
+$custom-colors: (
+    'accent': $brand-accent,
+    'highlight': $brand-highlight,
+);
+
+// --- Typography ---------------------------------------------------------------
+
+$font-family-sans-serif: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+
+$headings-font-weight: 700;
+$headings-color: $brand-primary;
+$headings-line-height: 1.15;
+
+$body-color: #35403a;
+$body-bg: #ffffff;
+
+$font-size-base: 1rem;
+$line-height-base: 1.6;
+
+// --- Shape & depth ------------------------------------------------------------
+
+$border-radius:    .625rem;
+$border-radius-sm: .4rem;
+$border-radius-lg: 1rem;
+$border-radius-xl: 1.5rem;
+
+$border-color: #e4e8e0;
+
+$box-shadow-sm: 0 1px 2px rgba(17, 65, 27, .06);
+$box-shadow:    0 .5rem 1.5rem rgba(17, 65, 27, .08);
+$box-shadow-lg: 0 1.5rem 3rem rgba(17, 65, 27, .12);
+
+// --- Components ---------------------------------------------------------------
+
+$link-color: $brand-secondary;
+$link-hover-color: $brand-primary;
+$link-decoration: none;
+$link-hover-decoration: underline;
+
+$btn-font-weight: 600;
+$btn-padding-y: .625rem;
+$btn-padding-x: 1.25rem;
+$btn-focus-width: .2rem;
+
+$input-btn-focus-color-opacity: .2;
+
+$card-border-color: $border-color;
+$card-border-radius: $border-radius-lg;
+$card-cap-bg: transparent;
+
+$navbar-padding-y: .875rem;
+$navbar-dark-color: rgba(255, 255, 255, .82);
+$navbar-dark-hover-color: #ffffff;
+$navbar-dark-active-color: #ffffff;
+
+$badge-font-weight: 600;
+$badge-padding-y: .4em;
+$badge-padding-x: .7em;
+
+$table-border-color: $border-color;
+$table-cell-padding-y: .875rem;
+
+$form-label-font-weight: 600;
+$form-label-margin-bottom: .375rem;
+$input-border-color: #d6ddd2;
+$input-focus-border-color: $brand-highlight;
+$input-padding-y: .625rem;
+
+$alert-border-radius: $border-radius;
+$pagination-border-radius: $border-radius;
+
+$dropdown-border-color: $border-color;
+$dropdown-border-radius: $border-radius;
+
+$modal-content-border-color: $border-color;
+$modal-content-border-radius: $border-radius-lg;

@@ -1,0 +1,302 @@
+// =============================================================================
+// Storefront — hero, showcase, trust strip, institutional pages
+// =============================================================================
+
+.hero {
+    position: relative;
+    overflow: hidden;
+    // Cor de base: é o que aparece enquanto a foto carrega e atrás dela se o
+    // arquivo falhar, então o texto branco nunca fica sem contraste.
+    background: linear-gradient(155deg, #17501f 0%, $brand-primary 55%, #0d3315 100%);
+    color: #fff;
+    padding-block: clamp(3.5rem, 9vw, 6.5rem);
+
+    // --- Foto de capa -------------------------------------------------------
+    &__media {
+        position: absolute;
+        inset: 0;
+        display: block;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            // A lavoura fica no terço inferior da foto; puxar o enquadramento
+            // para baixo mantém as hortaliças visíveis em telas largas e baixas.
+            object-position: center 62%;
+        }
+    }
+
+    // --- Véu de legibilidade ------------------------------------------------
+    //
+    // A foto é clara (céu aberto, alface verde-claro), então texto branco puro
+    // sobre ela seria ilegível. Duas camadas resolvem: uma vertical, que
+    // costura o hero à navbar e à faixa seguinte, e uma horizontal, mais
+    // fechada do lado do texto e mais aberta do lado da logo — assim a
+    // fotografia continua aparecendo onde não atrapalha.
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+            // Halo atrás da logo: a lavoura florida daquele trecho é clara e
+            // engolia o slogan. Escurece só ali, sem achatar a foto inteira.
+            radial-gradient(
+                44% 58% at 78% 50%,
+                rgba(9, 36, 16, .58) 0%,
+                rgba(9, 36, 16, .28) 55%,
+                transparent 78%
+            ),
+            linear-gradient(
+                to bottom,
+                rgba(11, 42, 18, .58) 0%,
+                rgba(11, 42, 18, .28) 26%,
+                rgba(11, 42, 18, .30) 72%,
+                rgba(11, 42, 18, .62) 100%
+            ),
+            linear-gradient(
+                100deg,
+                rgba(13, 51, 21, .95) 0%,
+                rgba(13, 51, 21, .88) 40%,
+                rgba(17, 65, 27, .64) 70%,
+                rgba(17, 65, 27, .50) 100%
+            );
+    }
+
+    // Sem colunas lado a lado, o texto passa a disputar espaço com a foto
+    // inteira — o véu fecha mais.
+    @include media-breakpoint-down(lg) {
+        &::after {
+            background: linear-gradient(
+                175deg,
+                rgba(13, 51, 21, .93) 0%,
+                rgba(13, 51, 21, .88) 55%,
+                rgba(11, 42, 18, .92) 100%
+            );
+        }
+    }
+
+    h1 {
+        color: #fff;
+        font-size: clamp(2.15rem, 5.2vw, 3.6rem);
+        text-shadow: 0 2px 18px rgba(6, 26, 12, .45);
+    }
+
+    p {
+        color: rgba(255, 255, 255, .92);
+        font-size: clamp(1.02rem, 1.6vw, 1.2rem);
+        max-width: 34rem;
+        text-shadow: 0 1px 10px rgba(6, 26, 12, .4);
+    }
+
+    // O verde-destaque da marca perde contraste sobre a foto; este tom mais
+    // claro mantém a identidade e passa em AA sobre o véu.
+    .eyebrow {
+        color: #a9e08f;
+        text-shadow: 0 1px 8px rgba(6, 26, 12, .5);
+    }
+
+    &__content {
+        position: relative;
+        z-index: 2;
+    }
+
+    &__logo {
+        filter: drop-shadow(0 1rem 2.25rem rgba(4, 20, 9, .6));
+    }
+}
+
+// --- Trust strip ------------------------------------------------------------------
+
+.trust-strip {
+    background: var(--surface-muted);
+    border-block: 1px solid var(--border-soft);
+    padding-block: 2.25rem;
+}
+
+// --- Section headings ---------------------------------------------------------------
+
+.section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 2rem;
+
+    h2 {
+        font-size: clamp(1.6rem, 3.4vw, 2.35rem);
+        margin-bottom: .35rem;
+    }
+
+    p {
+        color: #67766c;
+        margin-bottom: 0;
+        max-width: 42rem;
+    }
+}
+
+// --- Story / about ------------------------------------------------------------------
+
+.story-figure {
+    position: relative;
+    border-radius: $border-radius-xl;
+    overflow: hidden;
+    background: linear-gradient(150deg, rgba($brand-highlight, .2), rgba($brand-primary, .12));
+    border: 1px solid var(--border-soft);
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    text-align: center;
+}
+
+.value-card {
+    height: 100%;
+    padding: 1.6rem;
+    border-radius: $border-radius-lg;
+    background: #fff;
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--shadow-card);
+
+    .bi {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 3rem;
+        height: 3rem;
+        margin-bottom: 1rem;
+        border-radius: $border-radius;
+        background: rgba($brand-highlight, .16);
+        color: $brand-secondary;
+        font-size: 1.4rem;
+    }
+
+    h3 {
+        font-size: 1.1rem;
+        margin-bottom: .5rem;
+    }
+
+    p {
+        color: #67766c;
+        font-size: .9375rem;
+        margin-bottom: 0;
+    }
+}
+
+// --- CTA band --------------------------------------------------------------------------
+
+.cta-band {
+    background: linear-gradient(135deg, $brand-secondary, $brand-primary);
+    color: #fff;
+    border-radius: $border-radius-xl;
+    padding: clamp(2rem, 5vw, 3.25rem);
+
+    h2 { color: #fff; }
+
+    p {
+        color: rgba(255, 255, 255, .85);
+        margin-bottom: 0;
+    }
+}
+
+// --- Contact ----------------------------------------------------------------------------
+
+.contact-card {
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem;
+    border-radius: $border-radius-lg;
+    background: #fff;
+    border: 1px solid var(--border-soft);
+
+    .bi {
+        flex: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        border-radius: 50%;
+        background: rgba($brand-accent, .14);
+        color: darken($brand-accent, 8%);
+        font-size: 1.25rem;
+    }
+
+    strong { display: block; color: $brand-primary; }
+    a, span { color: #67766c; font-size: .9375rem; }
+}
+
+// Honeypot: present in the DOM for bots, invisible and unreachable for people.
+.hp-field {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+// =============================================================================
+// Mobile — home
+// =============================================================================
+
+@include media-breakpoint-down(lg) {
+    .hero {
+        // Sem a coluna da logo o hero não precisa da altura de antes: quanto
+        // antes o catálogo aparecer, melhor.
+        padding-block: 2.75rem 3rem;
+        text-align: center;
+
+        h1 {
+            font-size: clamp(1.85rem, 7.5vw, 2.6rem);
+        }
+
+        p {
+            margin-inline: auto;
+            font-size: 1rem;
+        }
+
+        .eyebrow {
+            font-size: .75rem;
+            letter-spacing: .07em;
+        }
+    }
+
+    .trust-strip {
+        padding-block: 1.5rem;
+    }
+
+    .section-head {
+        gap: .85rem;
+        margin-bottom: 1.5rem;
+
+        h2 { font-size: clamp(1.45rem, 5.5vw, 2rem); }
+
+        p { font-size: .9375rem; }
+    }
+
+    .cta-band {
+        text-align: center;
+
+        p { font-size: .9375rem; }
+    }
+}
+
+@include media-breakpoint-down(md) {
+    // O `clamp()` da seção ainda gera ~48px de respiro em telas pequenas;
+    // 2.25rem mantém o ritmo sem transformar a home num corredor vazio.
+    .section {
+        padding-block: 2.25rem;
+    }
+
+    .value-card { padding: 1.25rem; }
+
+    .contact-card {
+        padding: 1rem;
+
+        .bi {
+            width: 2.4rem;
+            height: 2.4rem;
+            font-size: 1.1rem;
+        }
+    }
+}

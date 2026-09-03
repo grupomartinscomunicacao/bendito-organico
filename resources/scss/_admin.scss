@@ -1,0 +1,370 @@
+// =============================================================================
+// Admin panel — sidebar shell, stat tiles, data tables
+// =============================================================================
+
+$sidebar-width: 16.5rem;
+
+.admin-shell {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: #f6f7f4;
+}
+
+// --- Sidebar --------------------------------------------------------------------
+
+.admin-sidebar {
+    width: $sidebar-width;
+    // !important is load-bearing here: `.offcanvas-lg` sets
+    // `background-color: transparent !important` above the breakpoint, which
+    // would otherwise leave the rail white-on-white.
+    background-color: $brand-primary !important;
+    color: rgba(255, 255, 255, .8);
+    display: flex;
+    flex-direction: column;
+
+    &__brand {
+        padding: 1.35rem 1.25rem;
+        border-bottom: 1px solid rgba(255, 255, 255, .12);
+    }
+
+    &__nav {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem .85rem 1.5rem;
+    }
+
+    &__group {
+        margin-top: 1.5rem;
+        padding: 0 .65rem .5rem;
+        font-size: .7rem;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, .45);
+
+        &:first-child { margin-top: 0; }
+    }
+
+    &__link {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        padding: .65rem .85rem;
+        margin-bottom: .15rem;
+        border-radius: $border-radius;
+        color: rgba(255, 255, 255, .8);
+        font-weight: 500;
+        font-size: .9375rem;
+        transition: background .15s ease, color .15s ease;
+
+        .bi { font-size: 1.1rem; opacity: .9; }
+
+        &:hover {
+            background: rgba(255, 255, 255, .1);
+            color: #fff;
+            text-decoration: none;
+        }
+
+        &.active {
+            background: rgba(255, 255, 255, .16);
+            color: #fff;
+            font-weight: 600;
+            box-shadow: inset 3px 0 0 $brand-accent;
+        }
+    }
+
+    &__badge {
+        margin-left: auto;
+        font-size: .7rem;
+        padding: .2em .5em;
+        border-radius: 999px;
+        background: $brand-accent;
+        color: #fff;
+        font-weight: 700;
+    }
+
+    &__foot {
+        padding: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, .12);
+        font-size: .8125rem;
+        color: rgba(255, 255, 255, .55);
+    }
+
+    &__credit {
+        margin: .75rem 0 0;
+        padding-top: .75rem;
+        border-top: 1px solid rgba(255, 255, 255, .08);
+        font-size: .75rem;
+        color: rgba(255, 255, 255, .45);
+
+        a {
+            color: rgba(255, 255, 255, .7);
+            font-weight: 600;
+
+            &:hover {
+                color: #fff;
+                text-decoration: none;
+            }
+        }
+    }
+}
+
+// Fixed rail from lg up; an offcanvas drawer below that.
+@include media-breakpoint-up(lg) {
+    .admin-sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 1035;
+    }
+
+    .admin-main {
+        margin-left: $sidebar-width;
+    }
+}
+
+.admin-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: .85rem clamp(1rem, 3vw, 2rem);
+    background: rgba(255, 255, 255, .92);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border-soft);
+
+    &__title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: $brand-primary;
+        margin: 0;
+    }
+}
+
+.admin-content {
+    padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.admin-page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+
+    h1 {
+        font-size: clamp(1.4rem, 3vw, 1.9rem);
+        margin-bottom: .25rem;
+    }
+
+    p {
+        color: #6b7a70;
+        margin: 0;
+        font-size: .9375rem;
+    }
+}
+
+// --- Stat tiles -----------------------------------------------------------------
+
+.stat-card {
+    position: relative;
+    height: 100%;
+    padding: 1.25rem;
+    border-radius: $border-radius-lg;
+    background: #fff;
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+
+    &__icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        margin-bottom: .9rem;
+        border-radius: $border-radius;
+        font-size: 1.25rem;
+    }
+
+    &__label {
+        font-size: .8125rem;
+        font-weight: 600;
+        color: #6b7a70;
+        margin-bottom: .2rem;
+    }
+
+    &__value {
+        font-size: 1.85rem;
+        font-weight: 800;
+        line-height: 1.1;
+        color: $brand-primary;
+        letter-spacing: -.02em;
+    }
+
+    &__hint {
+        margin-top: .35rem;
+        font-size: .8125rem;
+        color: #8a978d;
+    }
+
+    &__link::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+    }
+
+    &:hover {
+        border-color: rgba($brand-highlight, .5);
+    }
+}
+
+@each $name, $color in (
+    'primary': $brand-primary,
+    'secondary': $brand-secondary,
+    'highlight': $brand-highlight,
+    'accent': $brand-accent,
+    'info': #2b6cb0,
+    'danger': #c0392b
+) {
+    .stat-card__icon--#{$name} {
+        background: rgba($color, .13);
+        color: $color;
+    }
+}
+
+// --- Panels & tables ----------------------------------------------------------------
+
+.admin-card {
+    background: #fff;
+    border: 1px solid var(--border-soft);
+    border-radius: $border-radius-lg;
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+
+    &__head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border-soft);
+
+        h2 {
+            font-size: 1rem;
+            margin: 0;
+        }
+    }
+
+    &__body { padding: 1.25rem; }
+
+    &__foot {
+        padding: .9rem 1.25rem;
+        border-top: 1px solid var(--border-soft);
+        background: var(--surface-muted);
+    }
+
+    .table { margin-bottom: 0; }
+
+    // Tables sit flush inside the card; the padding comes from the cells.
+    .table-scroll .table > :not(caption) > * > *:first-child { padding-left: 1.25rem; }
+    .table-scroll .table > :not(caption) > * > *:last-child { padding-right: 1.25rem; }
+}
+
+.filter-bar {
+    display: grid;
+    gap: .75rem;
+    grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+    align-items: end;
+}
+
+.table-thumb {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: $border-radius-sm;
+    object-fit: cover;
+    background: var(--surface-muted);
+}
+
+.order-ref {
+    font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Menlo, monospace;
+    font-size: .875rem;
+    font-weight: 600;
+    color: $brand-primary;
+}
+
+// --- Image picker --------------------------------------------------------------------
+
+.image-drop {
+    display: grid;
+    place-items: center;
+    gap: .5rem;
+    padding: 1.5rem;
+    text-align: center;
+    border: 2px dashed var(--border-soft);
+    border-radius: $border-radius-lg;
+    background: var(--surface-muted);
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+
+    &:hover,
+    &.is-dragging {
+        border-color: $brand-highlight;
+        background: rgba($brand-highlight, .08);
+    }
+
+    .bi { font-size: 1.75rem; color: $brand-highlight; }
+
+    small { color: #8a978d; }
+}
+
+.image-preview {
+    width: 100%;
+    max-width: 15rem;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: $border-radius;
+    border: 1px solid var(--border-soft);
+}
+
+// --- Payload viewer --------------------------------------------------------------------
+
+.payload-view {
+    max-height: 26rem;
+    overflow: auto;
+    padding: 1rem;
+    border-radius: $border-radius;
+    background: #10231a;
+    color: #cfe6d6;
+    font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Menlo, monospace;
+    font-size: .8125rem;
+    line-height: 1.55;
+    margin: 0;
+}
+
+.settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: .8rem;
+
+    + .settings-row { border-top: 1px solid var(--border-soft); }
+
+    &__label {
+        font-weight: 600;
+        color: $brand-primary;
+        font-size: .9375rem;
+    }
+
+    &__value {
+        color: #6b7a70;
+        font-size: .9375rem;
+        text-align: right;
+        word-break: break-all;
+    }
+}

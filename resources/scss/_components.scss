@@ -1,0 +1,555 @@
+// =============================================================================
+// Shared components — navbar, footer, product card, quantity stepper
+// =============================================================================
+
+// --- Navbar --------------------------------------------------------------------
+
+.site-navbar {
+    background: $brand-primary;
+    box-shadow: 0 .25rem 1.25rem rgba(17, 65, 27, .22);
+
+    .navbar-brand {
+        display: inline-flex;
+        align-items: center;
+        padding-block: 0;
+    }
+
+    .nav-link {
+        position: relative;
+        font-weight: 600;
+        padding-inline: 0;
+        margin-inline: .9rem;
+        color: rgba(255, 255, 255, .85);
+
+        &::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -.35rem;
+            height: 2px;
+            border-radius: 2px;
+            background: $brand-accent;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform .2s ease;
+        }
+
+        &:hover,
+        &:focus-visible {
+            color: #fff;
+        }
+
+        &.active {
+            color: #fff;
+
+            &::after { transform: scaleX(1); }
+        }
+    }
+
+    .navbar-toggler {
+        border-color: rgba(255, 255, 255, .35);
+
+        &:focus { box-shadow: 0 0 0 .2rem rgba(255, 255, 255, .2); }
+    }
+
+    @include media-breakpoint-down(lg) {
+        .nav-link {
+            margin-inline: 0;
+            padding-block: .6rem;
+
+            &::after { display: none; }
+        }
+    }
+}
+
+.navbar-cta {
+    --bs-btn-color: #{$brand-primary};
+    --bs-btn-bg: #ffffff;
+    --bs-btn-border-color: #ffffff;
+    --bs-btn-hover-color: #{$brand-primary};
+    --bs-btn-hover-bg: #{$brand-cream};
+    --bs-btn-hover-border-color: #{$brand-cream};
+    font-weight: 700;
+}
+
+// --- Footer --------------------------------------------------------------------
+
+.site-footer {
+    background: $brand-primary;
+    color: rgba(255, 255, 255, .78);
+    padding-block: clamp(2.5rem, 6vw, 4rem) 1.5rem;
+
+    // Um e-mail longo é uma palavra só para o navegador: sem isso ele empurra
+    // a coluna e cria barra de rolagem horizontal na página inteira no celular.
+    li,
+    a {
+        overflow-wrap: anywhere;
+    }
+
+    h5 {
+        color: #fff;
+        font-size: .95rem;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
+    }
+
+    a {
+        color: rgba(255, 255, 255, .78);
+
+        &:hover {
+            color: #fff;
+            text-decoration: none;
+        }
+    }
+
+    .footer-divider {
+        border-top: 1px solid rgba(255, 255, 255, .14);
+        margin-top: 2.5rem;
+        padding-top: 1.5rem;
+        font-size: .875rem;
+        color: rgba(255, 255, 255, .6);
+    }
+}
+
+.footer-credit a {
+    color: rgba(255, 255, 255, .82);
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255, 255, 255, .3);
+    transition: color .16s ease, border-color .16s ease;
+
+    &:hover {
+        color: #fff;
+        border-bottom-color: $brand-accent;
+        text-decoration: none;
+    }
+}
+
+.social-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .1);
+    font-size: 1.1rem;
+    transition: background .18s ease;
+
+    &:hover { background: rgba(255, 255, 255, .2); }
+}
+
+// --- Product card ---------------------------------------------------------------
+
+.product-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--border-soft);
+    border-radius: $border-radius-lg;
+    box-shadow: var(--shadow-card);
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+
+    &:hover {
+        transform: translateY(-4px);
+        border-color: rgba($brand-highlight, .55);
+        box-shadow: var(--shadow-raised);
+    }
+
+    &__media {
+        position: relative;
+        aspect-ratio: 4 / 3;
+        overflow: hidden;
+        background: var(--surface-muted);
+    }
+
+    &__image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform .4s ease;
+    }
+
+    &:hover &__image {
+        transform: scale(1.04);
+    }
+
+    &__flags {
+        position: absolute;
+        inset: .75rem .75rem auto;
+        display: flex;
+        gap: .4rem;
+        flex-wrap: wrap;
+        pointer-events: none;
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        padding: 1.15rem 1.25rem 1.35rem;
+    }
+
+    &__title {
+        font-size: 1.0625rem;
+        font-weight: 700;
+        margin-bottom: .35rem;
+
+        a {
+            color: $brand-primary;
+
+            &:hover { color: $brand-secondary; text-decoration: none; }
+
+            // Makes the whole card clickable without nesting interactive
+            // elements inside an anchor.
+            &::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                z-index: 1;
+            }
+        }
+    }
+
+    &__description {
+        font-size: .875rem;
+        color: #67766c;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    &__footer {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: .75rem;
+        margin-top: auto;
+    }
+
+    &__cta {
+        position: relative;
+        z-index: 2;
+    }
+
+    &--unavailable {
+        .product-card__image { filter: grayscale(.75) opacity(.65); }
+    }
+}
+
+.price {
+    display: flex;
+    align-items: baseline;
+    gap: .35rem;
+    flex-wrap: wrap;
+
+    &__value {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: $brand-primary;
+        letter-spacing: -.02em;
+    }
+
+    &__unit {
+        font-size: .8125rem;
+        color: #6b7a70;
+    }
+
+    &__compare {
+        font-size: .875rem;
+        color: #98a49b;
+        text-decoration: line-through;
+    }
+}
+
+// --- Quantity stepper --------------------------------------------------------------
+
+.quantity-stepper {
+    display: inline-flex;
+    align-items: stretch;
+    border: 1px solid $input-border-color;
+    border-radius: $border-radius;
+    overflow: hidden;
+    background: #fff;
+
+    &:focus-within {
+        border-color: $brand-highlight;
+        box-shadow: 0 0 0 .2rem rgba($brand-highlight, .22);
+    }
+
+    button {
+        width: 2.75rem;
+        border: 0;
+        background: var(--surface-muted);
+        color: $brand-primary;
+        font-size: 1.15rem;
+        line-height: 1;
+        cursor: pointer;
+        transition: background .15s ease;
+
+        &:hover:not(:disabled) { background: rgba($brand-highlight, .18); }
+        &:disabled { opacity: .4; cursor: not-allowed; }
+    }
+
+    input {
+        width: 4.5rem;
+        border: 0;
+        text-align: center;
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: $brand-primary;
+        background: #fff;
+
+        &:focus { outline: none; }
+
+        // Hide the native spinners: the ± buttons are the control.
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+            appearance: none;
+            margin: 0;
+        }
+
+        appearance: textfield;
+    }
+}
+
+// --- Misc --------------------------------------------------------------------------
+
+.whatsapp-float {
+    position: fixed;
+    right: 1.1rem;
+    bottom: 1.1rem;
+    z-index: 1030;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.4rem;
+    height: 3.4rem;
+    border-radius: 50%;
+    background: #25d366;
+    color: #fff;
+    font-size: 1.7rem;
+    box-shadow: 0 .6rem 1.5rem rgba(0, 0, 0, .22);
+    transition: transform .18s ease;
+
+    &:hover { color: #fff; transform: scale(1.06); }
+}
+
+.trust-item {
+    display: flex;
+    gap: .85rem;
+    align-items: flex-start;
+
+    .bi {
+        flex: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        border-radius: 50%;
+        background: rgba($brand-highlight, .16);
+        color: $brand-secondary;
+        font-size: 1.3rem;
+    }
+}
+
+.step-marker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex: none;
+    border-radius: 50%;
+    background: $brand-primary;
+    color: #fff;
+    font-weight: 700;
+}
+
+// =============================================================================
+// Mobile — navbar, footer and cards on a phone
+// =============================================================================
+
+.site-navbar {
+    @include media-breakpoint-down(lg) {
+        // A shorter bar buys back a chunk of the first screen, and the sticky
+        // header follows the whole page.
+        --bs-navbar-padding-y: .625rem;
+
+        .brand-logo { height: 2.4rem; }
+
+        .navbar-toggler {
+            padding: .35rem .55rem;
+            font-size: 1rem;
+        }
+
+        .navbar-collapse {
+            padding-block: .5rem .75rem;
+        }
+
+        // Full-width tap target, aligned with the links above it.
+        .navbar-cta {
+            display: flex;
+            width: 100%;
+            padding-block: .7rem;
+        }
+    }
+}
+
+// --- Footer "ver mais" ------------------------------------------------------------
+
+.footer-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: .75rem 1rem;
+    border: 1px solid rgba(255, 255, 255, .22);
+    border-radius: $border-radius;
+    background: rgba(255, 255, 255, .06);
+    color: #fff;
+    font-size: .9375rem;
+    font-weight: 600;
+
+    &:hover,
+    &:focus-visible {
+        background: rgba(255, 255, 255, .12);
+    }
+
+    &__chevron {
+        margin-left: auto;
+        font-size: .8rem;
+        transition: transform .2s ease;
+    }
+
+    // Bootstrap puts `.collapsed` on the trigger while the panel is closed.
+    &.collapsed {
+        .footer-toggle__more { display: inline; }
+        .footer-toggle__less { display: none; }
+    }
+
+    &:not(.collapsed) {
+        .footer-toggle__more { display: none; }
+        .footer-toggle__less { display: inline; }
+
+        .footer-toggle__chevron { transform: rotate(180deg); }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .footer-toggle__chevron { transition: none; }
+}
+
+.site-footer {
+    @include media-breakpoint-down(lg) {
+        padding-block: 2.25rem 1.25rem;
+        text-align: center;
+
+        .brand-logo { margin-inline: auto; }
+
+        &__about {
+            margin-inline: auto;
+            max-width: 36ch;
+            font-size: .9375rem;
+        }
+
+        &__social { justify-content: center; }
+
+        // O painel expansível respira do topo, não das laterais.
+        &__details { padding-top: 1.75rem; }
+
+        h5 { margin-bottom: .65rem; }
+
+        .footer-divider {
+            justify-content: center;
+            margin-top: 1.75rem;
+            padding-top: 1.25rem;
+            text-align: center;
+            font-size: .8125rem;
+        }
+    }
+}
+
+// --- Product card on a phone ---------------------------------------------------------
+
+@include media-breakpoint-down(md) {
+    .product-card {
+        &__body { padding: .85rem .9rem 1rem; }
+
+        &__title { font-size: .9375rem; }
+
+        &__description {
+            font-size: .8125rem;
+            margin-bottom: .75rem;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+        }
+
+        // Duas colunas em 360px não comportam preço e botão lado a lado sem
+        // apertar os dois; empilhar deixa o CTA com a largura inteira do card.
+        &__footer {
+            flex-direction: column;
+            align-items: stretch;
+            gap: .6rem;
+        }
+
+        &__cta .btn {
+            width: 100%;
+            padding-block: .5rem;
+        }
+    }
+
+    .price__value { font-size: 1.15rem; }
+    .price__unit,
+    .price__compare { font-size: .75rem; }
+}
+
+// --- Trust items two-up ----------------------------------------------------------------
+
+// Duas colunas em 360px deixam ~150px por item: com o ícone à esquerda sobra
+// pouco mais de uma palavra por linha. Empilhado, o texto usa a largura toda.
+@include media-breakpoint-down(sm) {
+    .trust-item {
+        flex-direction: column;
+        align-items: center;
+        gap: .5rem;
+        text-align: center;
+
+        span { font-size: .8125rem; }
+    }
+}
+
+@include media-breakpoint-down(lg) {
+    .trust-item {
+        gap: .65rem;
+
+        .bi {
+            width: 2.25rem;
+            height: 2.25rem;
+            font-size: 1.05rem;
+        }
+
+        strong { font-size: .9375rem; }
+    }
+}
+
+// --- Floating WhatsApp ------------------------------------------------------------------
+
+@include media-breakpoint-down(md) {
+    .whatsapp-float {
+        right: .85rem;
+        bottom: .85rem;
+        width: 3rem;
+        height: 3rem;
+        font-size: 1.45rem;
+    }
+}

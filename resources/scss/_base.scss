@@ -1,0 +1,351 @@
+// =============================================================================
+// Base — CSS custom properties, typography, shared primitives
+// =============================================================================
+
+:root {
+    // The brand palette, also exposed as custom properties so inline styles
+    // and small JS tweaks can reach it without recompiling Sass.
+    --color-primary: #{$brand-primary};
+    --color-secondary: #{$brand-secondary};
+    --color-highlight: #{$brand-highlight};
+    --color-accent: #{$brand-accent};
+
+    --color-cream: #{$brand-cream};
+    --color-sand: #{$brand-sand};
+    --color-bark: #{$brand-bark};
+
+    --surface: #ffffff;
+    --surface-muted: #{$brand-cream};
+    --border-soft: #{$border-color};
+
+    --shadow-card: 0 .5rem 1.5rem rgba(17, 65, 27, .08);
+    --shadow-raised: 0 1rem 2.5rem rgba(17, 65, 27, .14);
+
+    --header-height: 4.75rem;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+
+    // Rede de segurança contra barra de rolagem horizontal no celular: as
+    // margens negativas de `.row.g-5` ultrapassam o padding do `.container`
+    // por 12px de cada lado.
+    //
+    // `clip` em vez de `hidden` de propósito: `hidden` transformaria o body em
+    // contêiner de rolagem e quebraria o `position: sticky` da navbar.
+    overflow-x: clip;
+}
+
+// Keyboard focus stays clearly visible everywhere — the outline is part of
+// the design, not something to strip out.
+:focus-visible {
+    outline: 3px solid rgba($brand-highlight, .55);
+    outline-offset: 2px;
+}
+
+::selection {
+    background: rgba($brand-highlight, .28);
+}
+
+.display-brand {
+    font-weight: 800;
+    letter-spacing: -.02em;
+    line-height: 1.08;
+}
+
+.text-balance {
+    text-wrap: balance;
+}
+
+.eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .8125rem;
+    font-weight: 700;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: $brand-secondary;
+}
+
+.section {
+    padding-block: clamp(3rem, 7vw, 5.5rem);
+}
+
+.section--muted {
+    background: var(--surface-muted);
+}
+
+.link-quiet {
+    color: inherit;
+
+    &:hover {
+        color: $brand-secondary;
+    }
+}
+
+// --- Brand logo ---------------------------------------------------------------
+
+.brand-logo {
+    display: block;
+    width: auto;
+    // Height is set per context; width:auto keeps the original proportions so
+    // the official artwork is never stretched.
+    height: 3.1rem;
+}
+
+.brand-logo--sm { height: 2.25rem; }
+.brand-logo--lg { height: 4rem; }
+.brand-logo--xl { height: clamp(4.5rem, 9vw, 6.5rem); }
+
+.brand-mark {
+    width: auto;
+    height: 2.5rem;
+    border-radius: 50%;
+}
+
+// --- Buttons ------------------------------------------------------------------
+
+.btn {
+    --bs-btn-border-radius: #{$border-radius};
+    transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease;
+}
+
+.btn-lg {
+    --bs-btn-padding-y: .8125rem;
+    --bs-btn-padding-x: 1.75rem;
+    --bs-btn-font-size: 1.0625rem;
+}
+
+.btn-primary,
+.btn-accent,
+.btn-secondary {
+    box-shadow: 0 .35rem .9rem rgba(17, 65, 27, .18);
+
+    &:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 .6rem 1.4rem rgba(17, 65, 27, .24);
+    }
+
+    &:active:not(:disabled) {
+        transform: translateY(0);
+    }
+}
+
+.btn-accent {
+    --bs-btn-color: #ffffff;
+    --bs-btn-hover-color: #ffffff;
+    --bs-btn-active-color: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+
+    .btn,
+    .product-card {
+        transition: none !important;
+
+        &:hover { transform: none !important; }
+    }
+}
+
+// --- Cards & surfaces ----------------------------------------------------------
+
+.card {
+    box-shadow: var(--shadow-card);
+}
+
+.surface {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: $border-radius-lg;
+    box-shadow: var(--shadow-card);
+}
+
+// --- Badges --------------------------------------------------------------------
+
+.badge {
+    letter-spacing: .01em;
+
+    .bi {
+        font-size: .9em;
+    }
+}
+
+.badge-soft {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .4em .7em;
+    border-radius: 999px;
+    font-size: .8125rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+@each $name, $color in (
+    'success': $brand-secondary,
+    'warning': $brand-accent,
+    'danger': #c0392b,
+    'info': #2b6cb0,
+    'primary': $brand-primary,
+    'accent': $brand-accent,
+    'secondary': #6b7280
+) {
+    .badge-soft--#{$name} {
+        background: rgba($color, .12);
+        color: darken($color, 8%);
+    }
+}
+
+// --- Forms ---------------------------------------------------------------------
+
+.form-control,
+.form-select {
+    &:focus {
+        box-shadow: 0 0 0 .2rem rgba($brand-highlight, .22);
+    }
+}
+
+.form-hint {
+    display: block;
+    margin-top: .3rem;
+    font-size: .8125rem;
+    color: #6b7a70;
+}
+
+.required-mark {
+    color: $brand-accent;
+    font-weight: 700;
+}
+
+// --- Alerts ---------------------------------------------------------------------
+
+.alert {
+    display: flex;
+    gap: .75rem;
+    align-items: flex-start;
+    border: 0;
+    border-left: 4px solid currentColor;
+    box-shadow: var(--shadow-card);
+
+    .bi {
+        flex: none;
+        font-size: 1.15rem;
+        line-height: 1.4;
+    }
+}
+
+// --- Empty states -----------------------------------------------------------------
+
+.empty-state {
+    padding: clamp(2rem, 6vw, 3.5rem);
+    text-align: center;
+    border: 1px dashed var(--border-soft);
+    border-radius: $border-radius-lg;
+    background: var(--surface-muted);
+
+    .bi {
+        font-size: 2.5rem;
+        color: $brand-highlight;
+    }
+}
+
+// --- Tables ------------------------------------------------------------------------
+
+.table {
+    --bs-table-hover-bg: #{rgba($brand-highlight, .06)};
+
+    > :not(caption) > * > * {
+        vertical-align: middle;
+    }
+
+    thead th {
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: #6b7a70;
+        border-bottom-width: 1px;
+        white-space: nowrap;
+    }
+}
+
+// Wide tables scroll inside their own container rather than pushing the page
+// sideways on a phone.
+.table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+// --- Narrow content column ----------------------------------------------------
+//
+// The vertical rhythm for single-column pages (order, order lookup): tight on
+// a phone, where the viewport is the scarce resource, roomier from md up.
+
+.section-narrow {
+    padding-block: 1.5rem 2.5rem;
+
+    @include media-breakpoint-up(md) {
+        padding-block: 2.5rem 4rem;
+    }
+}
+
+// --- Submit buttons that wait ---------------------------------------------------
+//
+// A lookup hits the database and a payment leaves for the gateway; on a phone
+// connection either can take a second with nothing on screen to say so. The
+// button swaps its own label for a spinner (see resources/js/modules/form-loading.js).
+
+.btn-spinner {
+    display: none;
+}
+
+.btn.is-loading {
+    pointer-events: none;
+
+    .btn-spinner { display: inline-block; }
+    .btn-label { display: none; }
+}
+
+// --- Mobile-first adjustments -----------------------------------------------------
+//
+// The desktop layout is the one the design was drawn for; these rules only
+// tighten what a 360px-wide screen cannot hold at full size.
+
+@include media-breakpoint-down(md) {
+    // Bootstrap's default 12px side padding leaves cards almost edge to edge.
+    .container,
+    .container-fluid {
+        --bs-gutter-x: 1.75rem;
+    }
+
+    .display-brand {
+        letter-spacing: -.015em;
+    }
+
+    // A full-width button is the easiest thing to hit with a thumb, and the
+    // large size is what makes it comfortable.
+    .btn-lg {
+        --bs-btn-padding-y: .75rem;
+        --bs-btn-padding-x: 1.25rem;
+        --bs-btn-font-size: 1rem;
+    }
+
+    .empty-state {
+        .bi { font-size: 2.15rem; }
+    }
+
+    // Never let a form field trigger iOS's zoom-on-focus: it fires below 16px.
+    // The `-sm` variants are opted out on purpose — they exist to make admin
+    // filters dense, and nobody types a long answer into one.
+    .form-control:not(.form-control-sm),
+    .form-select:not(.form-select-sm) {
+        font-size: 1rem;
+    }
+}

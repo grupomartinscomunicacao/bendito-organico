@@ -1,0 +1,148 @@
+// =============================================================================
+// Catalog listing and product detail
+// =============================================================================
+
+.catalog-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.1rem 1.25rem;
+    margin-bottom: 2rem;
+    border-radius: $border-radius-lg;
+    background: var(--surface-muted);
+    border: 1px solid var(--border-soft);
+}
+
+.page-hero {
+    background: linear-gradient(150deg, #17501f, $brand-primary);
+    color: #fff;
+    padding-block: clamp(2.5rem, 6vw, 4rem);
+
+    h1 { color: #fff; font-size: clamp(1.9rem, 4.4vw, 3rem); }
+    p { color: rgba(255, 255, 255, .82); margin-bottom: 0; }
+
+    .breadcrumb {
+        --bs-breadcrumb-divider-color: rgba(255, 255, 255, .5);
+        --bs-breadcrumb-item-active-color: rgba(255, 255, 255, .78);
+        margin-bottom: .75rem;
+
+        a { color: rgba(255, 255, 255, .78); }
+        a:hover { color: #fff; }
+    }
+}
+
+// --- Product detail ------------------------------------------------------------
+
+.product-gallery {
+    position: relative;
+    // The ratio lives on the container, not on the <img>: the image is then a
+    // plain fill, which behaves predictably inside the stretched grid column.
+    aspect-ratio: 1 / 1;
+    border-radius: $border-radius-xl;
+    overflow: hidden;
+    background: var(--surface-muted);
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--shadow-card);
+
+    img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    &__flags {
+        position: absolute;
+        inset: 1rem 1rem auto;
+        display: flex;
+        gap: .5rem;
+        flex-wrap: wrap;
+    }
+}
+
+.product-detail {
+    &__title {
+        font-size: clamp(1.75rem, 4vw, 2.6rem);
+        margin-bottom: .5rem;
+    }
+
+    &__lead {
+        font-size: 1.0625rem;
+        color: #5c6b61;
+    }
+
+    &__price {
+        .price__value { font-size: 2.25rem; }
+    }
+
+    &__description {
+        color: #4e5c53;
+        line-height: 1.75;
+
+        p:last-child { margin-bottom: 0; }
+    }
+}
+
+.spec-list {
+    display: grid;
+    gap: .25rem;
+    margin: 0;
+    padding: 1rem 1.25rem;
+    border-radius: $border-radius;
+    background: var(--surface-muted);
+    border: 1px solid var(--border-soft);
+
+    div {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-block: .4rem;
+
+        + div { border-top: 1px dashed var(--border-soft); }
+    }
+
+    dt { color: #6b7a70; font-weight: 500; font-size: .9375rem; }
+    dd { margin: 0; font-weight: 600; color: $brand-primary; font-size: .9375rem; }
+}
+
+// The buy box sticks alongside the description on wide screens, and simply
+// flows inline on a phone.
+.buy-box {
+    padding: 1.5rem;
+    border-radius: $border-radius-lg;
+    background: #fff;
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--shadow-card);
+
+    &__total {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-top: 1rem;
+        margin-top: 1rem;
+        border-top: 1px dashed var(--border-soft);
+
+        span { color: #6b7a70; font-size: .9375rem; }
+        strong { font-size: 1.65rem; color: $brand-primary; letter-spacing: -.02em; }
+    }
+}
+
+@include media-breakpoint-up(lg) {
+    .buy-box--sticky {
+        position: sticky;
+        top: 1.5rem;
+    }
+}
+
+.payment-hint {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .8125rem;
+    color: #6b7a70;
+
+    .bi { color: $brand-secondary; font-size: 1rem; }
+}
