@@ -94,7 +94,7 @@
                                         <span @class(['fw-semibold', 'text-danger' => (float) $product->stock <= 0])>
                                             {{ \App\Support\Money::quantity($product->stock) }}
                                         </span>
-                                        <span class="text-muted">{{ $product->unit->abbreviation() }}</span>
+                                        <span class="text-muted">{{ $product->unit->abbreviationFor((float) $product->stock) }}</span>
                                     @else
                                         <span class="text-muted">Ilimitado</span>
                                     @endif

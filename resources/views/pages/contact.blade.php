@@ -6,6 +6,10 @@
 @section('content')
 
     <section class="page-hero">
+        {{-- A mesma foto da home, aqui só como textura de fundo: a altura da
+             faixa não muda, e o véu do CSS mantém o contraste do texto. --}}
+        <x-hero-media />
+
         <div class="container">
             <nav aria-label="Você está aqui">
                 <ol class="breadcrumb">

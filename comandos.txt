@@ -1,3 +1,4 @@
 # Rodar o Projeto 
 php artisan serve
 
+bendito-organico@72.60.144.18

@@ -205,7 +205,7 @@ class MercadoPagoService
                 '%s (%s %s)',
                 $item->product_name,
                 $item->formatted_quantity,
-                $item->product_unit->abbreviation(),
+                $item->product_unit->abbreviationFor($quantity),
             );
             $unitPrice = (float) $item->subtotal;
             $quantity = 1.0;

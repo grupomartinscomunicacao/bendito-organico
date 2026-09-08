@@ -65,6 +65,17 @@ class CreateOrder
             $subtotal = round($unitPrice * $quantity, 2);
             $deliveryFee = round((float) config('bendito.checkout.delivery_fee', 0), 2);
 
+            // O pedido mínimo é conferido aqui, contra o preço recém-lido do
+            // banco, e não só nas telas: uma alteração de preço entre a página
+            // do produto e o envio do formulário mudaria o subtotal por baixo
+            // do cliente, e este é o único ponto que enxerga o valor final.
+            //
+            // A comparação é contra o subtotal, não o total: a entrega é
+            // combinada depois e não deve ajudar a alcançar o mínimo.
+            if (! $fresh->meetsMinimumOrder($quantity)) {
+                throw CheckoutException::belowMinimum($subtotal);
+            }
+
             $order = Order::create([
                 'public_number' => Order::generatePublicNumber(),
                 'customer_name' => $data['customer_name'],

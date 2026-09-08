@@ -102,7 +102,7 @@
                                     @if ($first)
                                         <span class="d-block text-truncate" style="max-width:14rem">{{ $first->product_name }}</span>
                                         <span class="text-muted" style="font-size:.8125rem">
-                                            {{ $first->formatted_quantity }} {{ $first->product_unit->abbreviation() }}
+                                            {{ $first->formatted_quantity }} {{ $first->product_unit->abbreviationFor((float) $first->quantity) }}
                                             @if ($order->items->count() > 1)
                                                 &middot; +{{ $order->items->count() - 1 }}
                                             @endif

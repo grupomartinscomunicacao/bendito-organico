@@ -190,7 +190,7 @@
                                         {{ $product->name }}
                                     </a>
                                     <span class="text-muted" style="font-size:.8125rem">
-                                        {{ \App\Support\Money::quantity($product->stock) }} {{ $product->unit->abbreviation() }} restantes
+                                        {{ \App\Support\Money::quantity($product->stock) }} {{ $product->unit->abbreviationFor((float) $product->stock) }} restantes
                                     </span>
                                 </div>
 

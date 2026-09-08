@@ -72,7 +72,9 @@ class CheckoutTest extends TestCase
 
         $this->post(route('checkout.start'), [
             'product_id' => $product->id,
-            'quantity' => 3,
+            // 6 x R$ 10,00 = R$ 60,00: acima do pedido mínimo de R$ 50,00,
+            // que é conferido em CreateOrder junto com o preço.
+            'quantity' => 6,
             // A tampered form trying to set its own price.
             'price' => 0.01,
             'unit_price' => 0.01,
@@ -87,10 +89,10 @@ class CheckoutTest extends TestCase
 
         $order = Order::query()->with('items')->firstOrFail();
 
-        $this->assertSame('30.00', $order->total);
-        $this->assertSame('30.00', $order->subtotal);
+        $this->assertSame('60.00', $order->total);
+        $this->assertSame('60.00', $order->subtotal);
         $this->assertSame('10.00', $order->items->first()->unit_price);
-        $this->assertSame('3.000', $order->items->first()->quantity);
+        $this->assertSame('6.000', $order->items->first()->quantity);
     }
 
     #[Test]
@@ -98,13 +100,13 @@ class CheckoutTest extends TestCase
     {
         $product = $this->product(['price' => 10.00]);
 
-        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 2]);
+        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 6]);
 
         $this->get(route('checkout.show'))
             ->assertOk()
             ->assertSee('Alface Crespa')
             ->assertSee('Endereço de entrega')
-            ->assertSee('R$ 20,00')
+            ->assertSee('R$ 60,00')
             ->assertSee('name="customer_name"', false)
             ->assertSee('name="zip_code"', false)
             // Never indexed, and never trusted with a price field.
@@ -116,7 +118,7 @@ class CheckoutTest extends TestCase
     public function validation_messages_are_shown_in_portuguese(): void
     {
         $product = $this->product();
-        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 1]);
+        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 5]);
 
         $this->post(route('orders.store'), [])
             ->assertSessionHasErrors('customer_name');
@@ -133,7 +135,7 @@ class CheckoutTest extends TestCase
         $this->fakeGateway();
         $product = $this->product();
 
-        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 1]);
+        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 5]);
         $this->post(route('orders.store'), $this->customerPayload());
 
         $order = Order::query()->firstOrFail();
@@ -161,7 +163,7 @@ class CheckoutTest extends TestCase
     {
         $product = $this->product(['is_active' => false]);
 
-        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 1])
+        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 5])
             ->assertSessionHasErrors('product_id');
 
         $this->assertSame(0, Order::query()->count());
@@ -179,7 +181,7 @@ class CheckoutTest extends TestCase
     public function it_validates_the_customer_and_address_fields(): void
     {
         $product = $this->product();
-        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 1]);
+        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 5]);
 
         $this->post(route('orders.store'), [
             'customer_name' => 'Maria',          // no surname
@@ -201,7 +203,7 @@ class CheckoutTest extends TestCase
         $this->fakeGateway();
         $product = $this->product();
 
-        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 1]);
+        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 5]);
         $this->post(route('orders.store'), $this->customerPayload());
 
         $order = Order::query()->with('address')->firstOrFail();
@@ -221,7 +223,7 @@ class CheckoutTest extends TestCase
         $this->fakeGateway();
         $product = $this->product();
 
-        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 1]);
+        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 5]);
 
         // A client that posts Latin-1 instead of UTF-8. Left unhandled, the
         // /u regex returns null and the address silently disappears.
@@ -242,7 +244,7 @@ class CheckoutTest extends TestCase
         $this->fakeGateway();
         $product = $this->product(['price' => 10.00]);
 
-        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 2]);
+        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 6]);
         $this->post(route('orders.store'), $this->customerPayload());
 
         $product->update(['name' => 'Alface Americana', 'price' => 99.00]);
@@ -251,7 +253,7 @@ class CheckoutTest extends TestCase
 
         $this->assertSame('Alface Crespa', $item->product_name);
         $this->assertSame('10.00', $item->unit_price);
-        $this->assertSame('20.00', $item->subtotal);
+        $this->assertSame('60.00', $item->subtotal);
     }
 
     #[Test]
@@ -260,7 +262,7 @@ class CheckoutTest extends TestCase
         $this->fakeGateway();
         $product = $this->product();
 
-        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 1]);
+        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 5]);
 
         // Test credentials, so the sandbox init point is the correct target.
         $this->post(route('orders.store'), $this->customerPayload())
@@ -275,7 +277,7 @@ class CheckoutTest extends TestCase
         $this->fakeGateway();
         $product = $this->product();
 
-        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 1]);
+        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 5]);
         $this->post(route('orders.store'), $this->customerPayload());
 
         Http::assertSent(function (\Illuminate\Http\Client\Request $request): bool {
@@ -285,11 +287,138 @@ class CheckoutTest extends TestCase
 
             $excluded = array_column($request['payment_methods']['excluded_payment_types'] ?? [], 'id');
 
-            // Boleto e caixa eletrônico levam dias para compensar, então ficam
-            // de fora — a página promete "Pix ou cartão" e o gateway obedece.
-            return in_array('ticket', $excluded, true)
-                && in_array('atm', $excluded, true);
+            // A loja aceita só Pix e cartão de crédito, e a lista do Checkout
+            // Pro é por exclusão — então tudo o que não for esses dois precisa
+            // estar aqui. Boleto e caixa eletrônico levam dias para compensar;
+            // débito, pré-pago e saldo Mercado Pago simplesmente não são
+            // oferecidos. A página promete dois meios, e o gateway obedece.
+            foreach (['ticket', 'atm', 'debit_card', 'prepaid_card', 'account_money'] as $type) {
+                if (! in_array($type, $excluded, true)) {
+                    return false;
+                }
+            }
+
+            // E o que sobra tem de continuar disponível: bank_transfer é o
+            // payment_type do Pix, e sem credit_card não sobraria nada.
+            return ! in_array('bank_transfer', $excluded, true)
+                && ! in_array('credit_card', $excluded, true);
         });
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pedido mínimo
+    |--------------------------------------------------------------------------
+    */
+
+    #[Test]
+    public function it_refuses_an_order_below_the_minimum(): void
+    {
+        // 4 × R$ 10,00 = R$ 40,00, abaixo do mínimo de R$ 50,00.
+        $product = $this->product(['price' => 10.00]);
+
+        $this->from(route('products.show', $product))
+            ->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 4])
+            ->assertRedirect(route('products.show', $product))
+            ->assertSessionHas('error');
+
+        $this->assertSame(0, Order::query()->count());
+    }
+
+    #[Test]
+    public function the_refusal_says_how_much_is_missing(): void
+    {
+        $product = $this->product(['price' => 10.00]);
+
+        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 4]);
+
+        // Dizer só "abaixo do mínimo" obrigaria o cliente a descobrir o número
+        // sozinho; a mensagem carrega o valor que falta.
+        $this->assertStringContainsString('R$ 10,00', (string) session('error'));
+        $this->assertStringContainsString('R$ 50,00', (string) session('error'));
+    }
+
+    #[Test]
+    public function an_order_exactly_at_the_minimum_goes_through(): void
+    {
+        $this->fakeGateway();
+        $product = $this->product(['price' => 10.00]);
+
+        // Exatamente R$ 50,00. A comparação é ">=", e o arredondamento do
+        // subtotal não pode empurrar a fronteira para fora.
+        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 5])
+            ->assertRedirect(route('checkout.show'));
+
+        $this->post(route('orders.store'), $this->customerPayload());
+
+        $this->assertSame('50.00', Order::query()->firstOrFail()->total);
+    }
+
+    #[Test]
+    public function the_minimum_is_enforced_again_when_the_order_is_created(): void
+    {
+        $this->fakeGateway();
+        $product = $this->product(['price' => 20.00, 'stock' => 50]);
+
+        // 3 × R$ 20,00 = R$ 60,00: passa na página do produto.
+        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 3])
+            ->assertRedirect(route('checkout.show'));
+
+        // O preço cai enquanto o cliente preenche o formulário, e o mesmo
+        // carrinho passa a valer R$ 30,00. A cesta guarda produto e quantidade,
+        // nunca o preço, então só CreateOrder enxerga o novo subtotal.
+        $product->update(['price' => 10.00]);
+
+        $this->post(route('orders.store'), $this->customerPayload())
+            ->assertSessionHas('error');
+
+        $this->assertSame(0, Order::query()->count());
+    }
+
+    #[Test]
+    public function the_checkout_page_bounces_back_when_stock_drops_below_the_minimum(): void
+    {
+        $product = $this->product(['price' => 10.00, 'stock' => 20]);
+
+        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 8]);
+
+        // A cesta é aparada pelo estoque a cada render. Com 3 unidades restando,
+        // o pedido cai para R$ 30,00 e não há como concluí-lo.
+        $product->update(['stock' => 3]);
+
+        $this->get(route('checkout.show'))
+            ->assertRedirect(route('products.show', $product))
+            ->assertSessionHas('error');
+    }
+
+    #[Test]
+    public function the_product_page_opens_at_the_smallest_quantity_that_reaches_the_minimum(): void
+    {
+        // R$ 4,50 o maço: são 12 maços (R$ 54,00) para passar dos R$ 50,00.
+        $product = $this->product([
+            'name' => 'Rúcula',
+            'price' => 4.50,
+            'unit' => ProductUnit::Bunch,
+            'stock' => 40,
+        ]);
+
+        $this->get(route('products.show', $product))
+            ->assertOk()
+            ->assertSee('value="12"', false)
+            ->assertSee('Pedido mínimo');
+    }
+
+    #[Test]
+    public function a_product_whose_whole_stock_cannot_reach_the_minimum_is_not_offered(): void
+    {
+        // 3 × R$ 4,50 = R$ 13,50: nem comprando tudo o pedido fecha.
+        $product = $this->product(['price' => 4.50, 'stock' => 3]);
+
+        $this->get(route('products.show', $product))
+            ->assertOk()
+            ->assertSee('Estoque insuficiente para o pedido mínimo')
+            // Oferecer o botão só levaria a um erro garantido.
+            ->assertDontSee('Fazer pedido');
     }
 
     #[Test]
@@ -298,7 +427,7 @@ class CheckoutTest extends TestCase
         Http::fake(['*' => Http::response(['message' => 'boom'], 500)]);
 
         $product = $this->product();
-        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 1]);
+        $this->post(route('checkout.start'), ['product_id' => $product->id, 'quantity' => 5]);
 
         $response = $this->post(route('orders.store'), $this->customerPayload());
 

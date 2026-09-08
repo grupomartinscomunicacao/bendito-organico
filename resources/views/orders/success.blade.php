@@ -42,7 +42,7 @@
                             <div class="flex-grow-1">
                                 <p class="order-summary__name">{{ $item->product_name }}</p>
                                 <p class="order-summary__meta mb-0">
-                                    {{ $item->formatted_quantity }} {{ $item->product_unit->abbreviation() }} ×
+                                    {{ $item->formatted_quantity }} {{ $item->product_unit->abbreviationFor((float) $item->quantity) }} ×
                                     {{ \App\Support\Money::brl($item->unit_price) }}
                                 </p>
                             </div>

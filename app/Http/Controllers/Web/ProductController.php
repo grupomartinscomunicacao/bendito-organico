@@ -30,6 +30,7 @@ class ProductController extends Controller
         return view('products.index', [
             'products' => $products,
             'search' => $search,
+            'minimumOrder' => (float) config('bendito.checkout.minimum_order', 0),
         ]);
     }
 

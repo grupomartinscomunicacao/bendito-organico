@@ -22,6 +22,7 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+/credenciais.txt
 
 # Backups do banco gerados pelo deploy/deploy.sh
 /storage/backups

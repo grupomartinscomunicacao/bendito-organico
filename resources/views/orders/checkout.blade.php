@@ -200,7 +200,7 @@
                         'name' => $product->name,
                         'image' => $product->image_url,
                         'quantity' => \App\Support\Money::quantity($quantity),
-                        'unit' => $product->unit->abbreviation(),
+                        'unit' => $product->unit->abbreviationFor($quantity),
                         'unit_price' => $product->price,
                         'subtotal' => $subtotal,
                     ]]"
@@ -224,7 +224,7 @@
 
                     <p class="payment-hint justify-content-center mt-3 mb-0">
                         <i class="bi bi-shield-lock" aria-hidden="true"></i>
-                        Ambiente seguro — Mercado Pago
+                        Ambiente seguro — Pix ou cartão de crédito
                     </p>
 
                     <div class="mt-3 pt-3 border-top">

@@ -458,16 +458,10 @@ php artisan queue:restart
 Estas ficaram de fora por decisão, não por esquecimento. O site sobe e funciona
 sem elas, mas cada uma tem consequência:
 
-**1. Mercado Pago sem credenciais.** Catálogo, carrinho e registro de pedido
-funcionam; a etapa de **pagamento falha**. Para ativar:
-
-```bash
-nano .env    # MERCADOPAGO_ACCESS_TOKEN, _PUBLIC_KEY, _WEBHOOK_SECRET
-php artisan config:cache
-php artisan queue:restart
-```
-
-E cadastre no painel do Mercado Pago (Webhooks → Configurar notificações):
+**1. Webhook do Mercado Pago precisa ser cadastrado no painel.** As
+credenciais de produção já estão no `.env`, mas o gateway só avisa que um Pix
+foi pago se a URL de notificação estiver registrada. No painel do Mercado Pago
+(Webhooks → Configurar notificações), com o evento **Pagamentos** marcado:
 
 ```
 https://benditoorganico.com.br/webhooks/mercadopago
@@ -475,7 +469,15 @@ https://benditoorganico.com.br/webhooks/mercadopago
 
 A "Assinatura secreta" que aparece nessa tela é o `MERCADOPAGO_WEBHOOK_SECRET`.
 Sem ela, com `MERCADOPAGO_VERIFY_SIGNATURE=true`, o webhook rejeita toda
-notificação — e o pedido nunca é marcado como pago.
+notificação — e o pedido nunca sai de "aguardando pagamento", mesmo com o
+dinheiro já na conta.
+
+Depois de qualquer mudança nesse bloco do `.env`:
+
+```bash
+php artisan config:cache
+php artisan queue:restart
+```
 
 **2. E-mail em `log`.** Nada é enviado de verdade. Na prática: a **recuperação
 de senha do painel não funciona** (o link só aparece em

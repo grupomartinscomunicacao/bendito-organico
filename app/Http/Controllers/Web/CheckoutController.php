@@ -35,6 +35,15 @@ class CheckoutController extends Controller
                 ->with('error', CheckoutException::insufficientStock($product)->getMessage());
         }
 
+        // Barrado já aqui, na página do produto, onde o cliente ainda está com
+        // o seletor de quantidade na frente. CreateOrder confere de novo — esta
+        // checagem é de conveniência, não é a que garante a regra.
+        if (! $product->meetsMinimumOrder($quantity)) {
+            return back()
+                ->withInput()
+                ->with('error', CheckoutException::belowMinimum($product->subtotalFor($quantity))->getMessage());
+        }
+
         $this->basket->put($product, $quantity);
 
         return redirect()->route('checkout.show');
@@ -54,11 +63,23 @@ class CheckoutController extends Controller
                 ->with('error', CheckoutException::emptyBasket()->getMessage());
         }
 
-        $subtotal = round((float) $basket['product']->price * $basket['quantity'], 2);
+        $product = $basket['product'];
+        $subtotal = $product->subtotalFor($basket['quantity']);
         $deliveryFee = round((float) config('bendito.checkout.delivery_fee', 0), 2);
 
+        // A cesta é resolvida de novo a cada render, e a quantidade é aparada
+        // pelo estoque disponível. Uma queda de estoque ou uma mudança de preço
+        // pode ter derrubado o pedido abaixo do mínimo depois que ele foi
+        // montado — melhor devolver o cliente ao produto do que deixá-lo
+        // preencher o formulário inteiro para falhar no envio.
+        if (! $product->meetsMinimumOrder($basket['quantity'])) {
+            return redirect()
+                ->route('products.show', $product)
+                ->with('error', CheckoutException::belowMinimum($subtotal)->getMessage());
+        }
+
         return view('orders.checkout', [
-            'product' => $basket['product'],
+            'product' => $product,
             'quantity' => $basket['quantity'],
             'subtotal' => $subtotal,
             'deliveryFee' => $deliveryFee,

@@ -6,6 +6,10 @@
 @section('content')
 
     <section class="page-hero">
+        {{-- A mesma foto da home, aqui só como textura de fundo: a altura da
+             faixa não muda, e o véu do CSS mantém o contraste do texto. --}}
+        <x-hero-media />
+
         <div class="container">
             <nav aria-label="Você está aqui">
                 <ol class="breadcrumb">
@@ -22,9 +26,22 @@
     <section class="section">
         <div class="container">
 
+            @if ($minimumOrder > 0)
+                <div class="catalog-notice">
+                    <i class="bi bi-basket2" aria-hidden="true"></i>
+                    <span>
+                        <strong>Pedido mínimo de {{ \App\Support\Money::brl($minimumOrder) }}.</strong>
+                        A quantidade sugerida já vem preenchida na página de cada produto.
+                    </span>
+                </div>
+            @endif
+
             <div class="catalog-toolbar">
                 <form method="GET" action="{{ route('products.index') }}" class="d-flex flex-wrap gap-2 flex-grow-1">
-                    <div class="input-group" style="max-width: 24rem">
+                    {{-- Busca escondida no celular: o catálogo é curto o bastante para
+                         ser percorrido com o polegar, e a barra custava uma dobra inteira
+                         antes do primeiro produto aparecer. No desktop ela continua. --}}
+                    <div class="input-group d-none d-md-flex" style="max-width: 24rem">
                         <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
                         <input
                             type="search"
@@ -41,15 +58,18 @@
                         <option value="preco" @selected(request('ordenar') === 'preco')>Menor preço</option>
                     </select>
 
-                    <button type="submit" class="btn btn-primary">Buscar</button>
+                    <button type="submit" class="btn btn-primary d-none d-md-inline-flex">Buscar</button>
 
+                    {{-- O "Limpar" continua no celular quando há busca ativa: sem o campo
+                         visível, seria a única saída de um resultado filtrado. --}}
                     @if ($search !== '' || request('ordenar'))
                         <a href="{{ route('products.index') }}" class="btn btn-link">Limpar</a>
                     @endif
                 </form>
 
+                {{-- Str::plural() é do inglês e devolvia "14 items" nesta linha. --}}
                 <span class="text-muted text-nowrap" style="font-size: .9375rem">
-                    {{ $products->total() }} {{ \Illuminate\Support\Str::plural('item', $products->total()) }}
+                    {{ $products->total() }} {{ $products->total() === 1 ? 'item' : 'itens' }}
                 </span>
             </div>
 

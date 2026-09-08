@@ -43,20 +43,40 @@ return [
 
     'statement_descriptor' => env('MERCADOPAGO_STATEMENT_DESCRIPTOR', 'BENDITOORGANICO'),
     'expires_after_minutes' => (int) env('MERCADOPAGO_EXPIRES_AFTER_MINUTES', 60),
+
+    /*
+    | Mantenha FALSE enquanto o Pix estiver ativo.
+    |
+    | binary_mode força o pagamento a terminar em aprovado ou recusado, sem
+    | estado intermediário — e um Pix nasce justamente "pending", esperando o
+    | cliente pagar o QR Code. Ligar isto quebraria o Pix.
+    */
     'binary_mode' => (bool) env('MERCADOPAGO_BINARY_MODE', false),
+
     'installments' => (int) env('MERCADOPAGO_INSTALLMENTS', 12),
 
     /*
     | Meios de pagamento bloqueados no checkout, por payment_type_id.
     |
-    | A loja trabalha só com Pix e cartão, então boleto ("ticket") e pagamento
-    | em caixa eletrônico ("atm") ficam de fora — ambos levam dias para
-    | compensar e deixariam hortaliça perecível reservada nesse meio-tempo.
-    | Continuam liberados: bank_transfer (Pix), credit_card, debit_card e
-    | account_money (saldo Mercado Pago).
+    | A loja aceita SÓ Pix e cartão de crédito. Como a lista do Checkout Pro é
+    | por exclusão, tudo o que não for esses dois entra aqui:
+    |
+    |   ticket        boleto — leva dias para compensar, e hortaliça é perecível
+    |   atm           pagamento em caixa eletrônico, mesma demora
+    |   debit_card    cartão de débito
+    |   prepaid_card  cartão pré-pago
+    |   account_money saldo em conta do Mercado Pago
+    |
+    | Sobra liberado: bank_transfer (é o payment_type do Pix) e credit_card.
+    |
+    | Só o texto da página não basta: sem excluded_payment_types o Checkout Pro
+    | continua oferecendo os outros meios e o cliente consegue escolhê-los.
     */
     'excluded_payment_types' => array_filter(
-        explode(',', (string) env('MERCADOPAGO_EXCLUDED_PAYMENT_TYPES', 'ticket,atm'))
+        explode(',', (string) env(
+            'MERCADOPAGO_EXCLUDED_PAYMENT_TYPES',
+            'ticket,atm,debit_card,prepaid_card,account_money',
+        ))
     ),
 
     /*

@@ -65,7 +65,7 @@
                                     </td>
                                     <td class="text-nowrap">{{ \App\Support\Money::brl($item->unit_price) }}</td>
                                     <td class="text-nowrap">
-                                        {{ $item->formatted_quantity }} {{ $item->product_unit->abbreviation() }}
+                                        {{ $item->formatted_quantity }} {{ $item->product_unit->abbreviationFor((float) $item->quantity) }}
                                     </td>
                                     <td class="text-end fw-semibold text-nowrap">{{ \App\Support\Money::brl($item->subtotal) }}</td>
                                 </tr>

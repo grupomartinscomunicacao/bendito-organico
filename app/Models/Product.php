@@ -143,6 +143,70 @@ class Product extends Model
         return min($ceiling, (float) $this->stock);
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Minimum order
+    |--------------------------------------------------------------------------
+    |
+    | A loja tem um pedido mínimo em reais, e o checkout leva um produto por
+    | pedido. Traduzir o mínimo em "quantos deste item" é o que permite abrir
+    | a página já com a quantidade certa em vez de deixar o cliente descobrir
+    | a regra num erro depois de preencher o formulário inteiro.
+    |
+    */
+
+    /**
+     * Menor quantidade deste produto que alcança o pedido mínimo, arredondada
+     * para cima no passo da unidade (não dá para vender 2,4 maços).
+     */
+    public function minimumOrderQuantity(): float
+    {
+        $step = $this->unit->step();
+        $minimum = (float) config('bendito.checkout.minimum_order', 0);
+        $price = (float) $this->price;
+
+        if ($minimum <= 0 || $price <= 0) {
+            return $step;
+        }
+
+        // O epsilon evita que ruído de ponto flutuante (50 / 12.5 = 4.000000001)
+        // empurre o cliente para um passo inteiro a mais do que precisa.
+        $needed = $minimum / $price;
+        $steps = (int) ceil(($needed / $step) - 1e-9);
+
+        return max($step, round($steps * $step, 3));
+    }
+
+    /**
+     * Falso quando nem todo o estoque disponível chega ao pedido mínimo — aí
+     * o item não pode ser comprado sozinho, e a página do produto diz isso em
+     * vez de oferecer um botão que sempre falharia.
+     */
+    public function canMeetMinimumOrder(): bool
+    {
+        return $this->minimumOrderQuantity() <= $this->maxOrderableQuantity();
+    }
+
+    /** O subtotal deste produto para uma dada quantidade. */
+    public function subtotalFor(float $quantity): float
+    {
+        return round((float) $this->price * $quantity, 2);
+    }
+
+    public function meetsMinimumOrder(float $quantity): bool
+    {
+        $minimum = (float) config('bendito.checkout.minimum_order', 0);
+
+        if ($minimum <= 0) {
+            return true;
+        }
+
+        // Meio centavo de folga: o subtotal já vem arredondado em 2 casas, e
+        // sem a folga um pedido de exatamente R$ 50,00 poderia ser recusado
+        // por causa da representação binária do float.
+        return $this->subtotalFor($quantity) >= $minimum - 0.005;
+    }
+
     protected function availabilityLabel(): Attribute
     {
         return Attribute::get(function (): string {

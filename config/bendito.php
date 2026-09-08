@@ -23,16 +23,16 @@ return [
     ),
 
     'contact' => [
-        'email' => env('STORE_EMAIL', 'contato@benditoorganico.com.br'),
-        'phone' => env('STORE_PHONE', '(11) 99999-0000'),
-        'whatsapp' => env('STORE_WHATSAPP', '5511999990000'),
-        'address' => env('STORE_ADDRESS', 'Estrada do Produtor, km 12 — Zona Rural'),
-        'city' => env('STORE_CITY', 'São Paulo'),
-        'state' => env('STORE_STATE', 'SP'),
+        'email' => env('STORE_EMAIL', 'benditoorganico@gmail.com'),
+        'phone' => env('STORE_PHONE', '(77) 99956-3904'),
+        'whatsapp' => env('STORE_WHATSAPP', '5577999563904'),
+        'address' => env('STORE_ADDRESS', 'Chacara Bendito, Serra do Aeroporto — Zona Rural'),
+        'city' => env('STORE_CITY', 'Barreiras'),
+        'state' => env('STORE_STATE', 'BA'),
     ],
 
     'social' => [
-        'instagram' => env('STORE_INSTAGRAM', 'https://instagram.com/benditoorganico'),
+        'instagram' => env('STORE_INSTAGRAM', 'https://instagram.com/bendito.organico'),
         'facebook' => env('STORE_FACEBOOK'),
     ],
 
@@ -93,6 +93,19 @@ return [
     'checkout' => [
         'max_quantity' => (int) env('CHECKOUT_MAX_QUANTITY', 99),
         'delivery_fee' => (float) env('CHECKOUT_DELIVERY_FEE', 0),
+
+        /*
+        | Valor mínimo do pedido, em reais.
+        |
+        | Comparado contra o SUBTOTAL (produto × quantidade), não contra o
+        | total: a taxa de entrega é combinada depois pelo WhatsApp e não
+        | deve contar para alcançar o mínimo.
+        |
+        | O checkout é de um produto por pedido, então o mínimo se traduz em
+        | uma quantidade mínima daquele item — a página do produto já abre com
+        | ela preenchida. Zero desliga a regra.
+        */
+        'minimum_order' => (float) env('CHECKOUT_MINIMUM_ORDER', 50),
         'delivery_notice' => env(
             'CHECKOUT_DELIVERY_NOTICE',
             'Entregamos de terça a sábado. Após a confirmação do pagamento entramos em contato pelo WhatsApp para combinar o melhor horário.'

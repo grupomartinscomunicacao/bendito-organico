@@ -41,7 +41,7 @@ class OrderPaidNotification extends Notification implements ShouldQueue
                 '• %s — %s %s × %s',
                 $item->product_name,
                 $item->formatted_quantity,
-                $item->product_unit->abbreviation(),
+                $item->product_unit->abbreviationFor((float) $item->quantity),
                 Money::brl($item->unit_price),
             ));
         }

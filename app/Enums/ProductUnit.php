@@ -45,6 +45,29 @@ enum ProductUnit: string
     }
 
     /**
+     * A abreviação concordando com a quantidade: "1 maço", "12 maços".
+     *
+     * Str::plural() é do inglês e devolveria "macos"/"bandejas" por sorte e
+     * "duzias" por acidente, então o plural é explícito. As unidades de medida
+     * (un, kg, g) são símbolos e não flexionam — "12 kgs" está errado.
+     */
+    public function abbreviationFor(float $quantity): string
+    {
+        if (abs($quantity) <= 1) {
+            return $this->abbreviation();
+        }
+
+        return match ($this) {
+            self::Unit, self::Kilogram, self::Gram => $this->abbreviation(),
+            self::Bunch => 'maços',
+            self::Tray => 'bandejas',
+            self::Dozen => 'dúzias',
+            self::Package => 'pacotes',
+            self::Bundle => 'molhos',
+        };
+    }
+
+    /**
      * Smallest increment a customer can order.
      *
      * Discrete items go one at a time; produce sold by weight can be bought

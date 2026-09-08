@@ -15,10 +15,77 @@
     border: 1px solid var(--border-soft);
 }
 
+// Aviso do pedido mínimo no topo do catálogo. Fica acima da barra de
+// ferramentas porque a regra muda o que a pessoa vai escolher, e descobrir isso
+// só na página do produto custaria uma navegação a mais.
+.catalog-notice {
+    display: flex;
+    gap: .75rem;
+    align-items: flex-start;
+    padding: .85rem 1.1rem;
+    margin-bottom: 1rem;
+    border-radius: $border-radius;
+    background: rgba($brand-accent, .1);
+    border: 1px solid rgba($brand-accent, .28);
+    color: #5a4326;
+    font-size: .9375rem;
+    line-height: 1.5;
+
+    .bi {
+        flex: none;
+        color: darken($brand-accent, 6%);
+        font-size: 1.1rem;
+        line-height: 1.35;
+    }
+
+    strong { color: darken($brand-accent, 18%); }
+
+    @include media-breakpoint-down(md) {
+        font-size: .875rem;
+        padding: .75rem .9rem;
+    }
+}
+
+// Cabeçalho das páginas internas (catálogo, sobre, contato).
+//
+// Leva a mesma foto da home ao fundo, mas o padding continua exatamente o que
+// era: a faixa não cresce, só deixa de ser um retângulo verde chapado. A foto
+// é decorativa aqui, então o véu é bem mais fechado do que o da home — o que
+// importa nesta faixa é o título e o caminho de navegação, não a paisagem.
 .page-hero {
+    position: relative;
+    overflow: hidden;
+    // Continua sendo o fundo real enquanto a foto carrega, e o definitivo se
+    // o arquivo falhar — o texto branco nunca fica sem contraste.
     background: linear-gradient(150deg, #17501f, $brand-primary);
     color: #fff;
     padding-block: clamp(2.5rem, 6vw, 4rem);
+
+    // .hero__media já posiciona a foto (inset 0, object-fit: cover); aqui só
+    // se ajusta o enquadramento, porque a faixa é bem mais baixa que a da home
+    // e o corte central mostra mais lavoura do que céu.
+    .hero__media img {
+        object-position: center 58%;
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(
+            105deg,
+            rgba(13, 51, 21, .93) 0%,
+            rgba(13, 51, 21, .86) 45%,
+            rgba(17, 65, 27, .74) 100%
+        );
+    }
+
+    // Sem isto o conteúdo ficaria atrás do véu.
+    > .container {
+        position: relative;
+        z-index: 2;
+    }
 
     h1 { color: #fff; font-size: clamp(1.9rem, 4.4vw, 3rem); }
     p { color: rgba(255, 255, 255, .82); margin-bottom: 0; }
@@ -30,6 +97,18 @@
 
         a { color: rgba(255, 255, 255, .78); }
         a:hover { color: #fff; }
+    }
+
+    // Numa tela estreita o texto ocupa a largura toda e disputa espaço com a
+    // foto inteira, então o véu fecha mais.
+    @include media-breakpoint-down(md) {
+        &::after {
+            background: linear-gradient(
+                170deg,
+                rgba(13, 51, 21, .94) 0%,
+                rgba(13, 51, 21, .90) 100%
+            );
+        }
     }
 }
 
@@ -127,6 +206,27 @@
 
         span { color: #6b7a70; font-size: .9375rem; }
         strong { font-size: 1.65rem; color: $brand-primary; letter-spacing: -.02em; }
+    }
+
+    // Aviso do pedido mínimo. Informativo, não um erro: o seletor já abre numa
+    // quantidade válida, então o tom é de explicação e não de alerta.
+    &__minimum {
+        display: flex;
+        gap: .5rem;
+        align-items: flex-start;
+        padding: .7rem .85rem;
+        border-radius: $border-radius-sm;
+        background: rgba($brand-highlight, .1);
+        color: #4a5b50;
+        font-size: .8125rem;
+        line-height: 1.45;
+
+        .bi {
+            flex: none;
+            color: $brand-secondary;
+            font-size: .95rem;
+            line-height: 1.3;
+        }
     }
 }
 

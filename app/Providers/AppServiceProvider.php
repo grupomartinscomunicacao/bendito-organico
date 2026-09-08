@@ -11,6 +11,7 @@ use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Contracts\Session\Session;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
@@ -36,9 +37,25 @@ class AppServiceProvider extends ServiceProvider
         $this->configureModels();
         $this->configureUrls();
         $this->configureAuth();
+        $this->configurePagination();
         $this->configureCacheInvalidation();
 
         Vite::prefetch(concurrency: 3);
+    }
+
+    /**
+     * O paginador do Laravel vem com as views do Tailwind por padrão. Este
+     * projeto é Bootstrap 5, e sem esta troca o resultado era uma lista sem
+     * estilo com os ícones SVG de seta esticados em tamanho natural e o texto
+     * "Showing 1 to 12 of 14 results" em inglês.
+     *
+     * A variante "bootstrap-5" usa a marcação que o _pagination.scss do
+     * Bootstrap já estiliza (importado em app.scss) e traduz os rótulos por
+     * lang/pt_BR/pagination.php.
+     */
+    private function configurePagination(): void
+    {
+        Paginator::useBootstrapFive();
     }
 
     private function configureModels(): void

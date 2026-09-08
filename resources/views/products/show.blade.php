@@ -105,14 +105,20 @@
                     @if ($product->track_stock && $product->isAvailable())
                         <div>
                             <dt>Em estoque</dt>
-                            <dd>{{ \App\Support\Money::quantity($product->stock) }} {{ $product->unit->abbreviation() }}</dd>
+                            <dd>{{ \App\Support\Money::quantity($product->stock) }} {{ $product->unit->abbreviationFor((float) $product->stock) }}</dd>
                         </div>
                     @endif
                 </dl>
 
                 {{-- Buy box --}}
+                @php
+                    $minimumOrder = (float) config('bendito.checkout.minimum_order', 0);
+                    $minimumQuantity = $product->minimumOrderQuantity();
+                    $canMeetMinimum = $product->canMeetMinimumOrder();
+                @endphp
+
                 <div class="buy-box mb-4">
-                    @if ($product->isAvailable())
+                    @if ($product->isAvailable() && $canMeetMinimum)
                         <form method="POST" action="{{ route('checkout.start') }}">
                             @csrf
                             <input type="hidden" name="product_id" value="{{ $product->id }}">
@@ -120,14 +126,36 @@
                             <label class="form-label" for="quantidade">Quantidade</label>
                             <div class="d-flex flex-wrap align-items-center gap-3">
                                 <x-quantity-input :product="$product" id="quantidade" />
-                                <span class="text-muted" style="font-size:.9375rem">
-                                    {{ $product->unit->abbreviation() }}
-                                </span>
+                                {{-- Acompanha o seletor: com o mínimo em 12 o rótulo abre
+                                     em "maços", e volta para "maço" se a quantidade cair
+                                     para 1. Os dois valores vêm do servidor porque o
+                                     plural em português não sai de uma regra genérica. --}}
+                                <span
+                                    class="text-muted"
+                                    style="font-size:.9375rem"
+                                    data-quantity-unit
+                                    data-unit-one="{{ $product->unit->abbreviation() }}"
+                                    data-unit-many="{{ $product->unit->abbreviationFor(2) }}"
+                                >{{ $product->unit->abbreviationFor($minimumQuantity) }}</span>
                             </div>
+
+                            @if ($minimumOrder > 0)
+                                {{-- O seletor já abre no mínimo comprável, então isto explica
+                                     por que o número inicial não é 1 — sem a frase, a página
+                                     pareceria ter escolhido a quantidade por conta própria. --}}
+                                <p class="buy-box__minimum mt-3 mb-0">
+                                    <i class="bi bi-info-circle" aria-hidden="true"></i>
+                                    <span>
+                                        Pedido mínimo de {{ \App\Support\Money::brl($minimumOrder) }} —
+                                        a partir de {{ \App\Support\Money::quantity($minimumQuantity) }}
+                                        {{ $product->unit->abbreviationFor($minimumQuantity) }} deste item.
+                                    </span>
+                                </p>
+                            @endif
 
                             <div class="buy-box__total">
                                 <span>Total do pedido</span>
-                                <strong data-quantity-total>{{ \App\Support\Money::brl($product->price) }}</strong>
+                                <strong data-quantity-total>{{ \App\Support\Money::brl($product->subtotalFor($minimumQuantity)) }}</strong>
                             </div>
 
                             <div class="d-grid mt-3">
@@ -139,9 +167,23 @@
 
                             <p class="payment-hint justify-content-center mt-3 mb-0">
                                 <i class="bi bi-shield-lock" aria-hidden="true"></i>
-                                Pagamento seguro via Mercado Pago — Pix ou cartão
+                                Pagamento seguro via Mercado Pago — Pix ou cartão de crédito
                             </p>
                         </form>
+                    @elseif ($product->isAvailable() && ! $canMeetMinimum)
+                        {{-- Disponível, mas o estoque inteiro não chega ao pedido mínimo:
+                             oferecer o botão só levaria a um erro garantido. --}}
+                        <div class="text-center py-2">
+                            <i class="bi bi-basket2 d-block mb-2" style="font-size:2rem;color:var(--color-highlight)" aria-hidden="true"></i>
+                            <strong class="d-block mb-1">Estoque insuficiente para o pedido mínimo</strong>
+                            <p class="text-muted mb-3" style="font-size:.9375rem">
+                                O pedido mínimo é de {{ \App\Support\Money::brl($minimumOrder) }} e não temos
+                                {{ $product->name }} suficiente para alcançá-lo agora. Veja o que mais saiu da horta hoje.
+                            </p>
+                            <x-button href="{{ route('products.index') }}" variant="primary" icon="arrow-left">
+                                Ver outros produtos
+                            </x-button>
+                        </div>
                     @else
                         <div class="text-center py-2">
                             <i class="bi bi-basket2 d-block mb-2" style="font-size:2rem;color:var(--color-highlight)" aria-hidden="true"></i>

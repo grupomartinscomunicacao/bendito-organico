@@ -37,6 +37,7 @@ export default function initQuantityStepper() {
         const unitPrice = parseNumber(input.dataset.unitPrice);
 
         const totalTargets = document.querySelectorAll('[data-quantity-total]');
+        const unitTargets = document.querySelectorAll('[data-quantity-unit]');
         const submit = document.querySelector('[data-quantity-submit]');
 
         const clamp = (value) => Math.min(max, Math.max(min, value));
@@ -54,7 +55,20 @@ export default function initQuantityStepper() {
                 });
             }
 
+            // Singular e plural vêm prontos do servidor: "maço"/"maços" e
+            // "dúzia"/"dúzias" não saem de uma regra que dê para escrever aqui,
+            // e "kg" não flexiona.
+            unitTargets.forEach((el) => {
+                const { unitOne, unitMany } = el.dataset;
+
+                if (unitOne && unitMany) {
+                    el.textContent = value > 1 ? unitMany : unitOne;
+                }
+            });
+
             if (submit) {
+                // O botão só some quando nem o estoque inteiro alcança o
+                // mínimo — aí não existe quantidade válida para escolher.
                 submit.disabled = max < min;
             }
         };

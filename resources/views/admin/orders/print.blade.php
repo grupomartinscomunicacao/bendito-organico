@@ -39,7 +39,8 @@
             </span>
             <span>
                 <i class="bi bi-box-seam" aria-hidden="true"></i>
-                {{ $order->items->count() }} {{ \Illuminate\Support\Str::plural('item', $order->items->count()) }}
+                {{-- Str::plural() é do inglês: daria "items" no lugar de "itens". --}}
+                {{ $order->items->count() }} {{ $order->items->count() === 1 ? 'item' : 'itens' }}
             </span>
             <span>
                 <i class="bi bi-{{ $order->status->icon() }}" aria-hidden="true"></i>
@@ -116,7 +117,7 @@
                                     </span>
                                 </td>
                                 <td style="white-space:nowrap;font-weight:700">
-                                    {{ $item->formatted_quantity }} {{ $item->product_unit->abbreviation() }}
+                                    {{ $item->formatted_quantity }} {{ $item->product_unit->abbreviationFor((float) $item->quantity) }}
                                 </td>
                                 <td style="white-space:nowrap">{{ \App\Support\Money::brl($item->subtotal) }}</td>
                             </tr>

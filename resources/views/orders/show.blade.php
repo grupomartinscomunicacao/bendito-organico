@@ -52,7 +52,7 @@
                         'name' => $item->product_name,
                         'image' => $item->image_url,
                         'quantity' => $item->formatted_quantity,
-                        'unit' => $item->product_unit->abbreviation(),
+                        'unit' => $item->product_unit->abbreviationFor((float) $item->quantity),
                         'unit_price' => $item->unit_price,
                         'subtotal' => $item->subtotal,
                     ])->all()"
