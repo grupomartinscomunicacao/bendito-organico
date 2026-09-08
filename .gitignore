@@ -22,3 +22,6 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Backups do banco gerados pelo deploy/deploy.sh
+/storage/backups

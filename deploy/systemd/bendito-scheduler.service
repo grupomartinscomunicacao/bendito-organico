@@ -1,0 +1,23 @@
+# ---------------------------------------------------------------------------
+# Agendador do Laravel (schedule:run)
+#
+# Destino: /etc/systemd/system/bendito-scheduler.service
+#
+# Hoje routes/console.php não agenda nada, então isto é preventivo: deixa a
+# infraestrutura pronta para a primeira tarefa periódica (limpar failed_jobs,
+# expirar pedidos não pagos, relatório diário) sem novo acesso ao servidor.
+#
+# Habilitar o .timer, não este arquivo.
+# ---------------------------------------------------------------------------
+
+[Unit]
+Description=Bendito Organico - agendador Laravel
+
+[Service]
+Type=oneshot
+User=bendito
+Group=bendito
+WorkingDirectory=/var/www/benditoorganico.com.br
+ExecStart=/usr/bin/php /var/www/benditoorganico.com.br/artisan schedule:run
+StandardOutput=append:/var/log/bendito-scheduler.log
+StandardError=append:/var/log/bendito-scheduler.log

@@ -1,0 +1,47 @@
+# ---------------------------------------------------------------------------
+# Worker da fila do Bendito Orgânico
+#
+# Destino: /etc/systemd/system/bendito-queue.service
+#
+# QUEUE_CONNECTION=database e as notificações implementam ShouldQueue
+# (OrderPaidNotification, ContactMessageNotification). Sem este serviço os
+# jobs entram na tabela "jobs" e nunca saem.
+#
+# Roda como "bendito", o mesmo usuário do pool PHP-FPM, para que os arquivos
+# que ele escreve (logs, cache) continuem legíveis pelo site.
+# ---------------------------------------------------------------------------
+
+[Unit]
+Description=Bendito Organico - worker de fila
+After=network.target
+
+[Service]
+Type=simple
+User=bendito
+Group=bendito
+WorkingDirectory=/var/www/benditoorganico.com.br
+
+# --max-time recicla o processo de hora em hora: evita que vazamento de
+# memória em job longo se acumule. --tries=3 dá margem a falha transitória
+# de rede antes de mandar o job para failed_jobs.
+ExecStart=/usr/bin/php /var/www/benditoorganico.com.br/artisan queue:work \
+    --queue=default \
+    --sleep=3 \
+    --tries=3 \
+    --backoff=10 \
+    --max-time=3600 \
+    --timeout=90
+
+Restart=always
+RestartSec=5
+
+# Encerramento gracioso: o worker termina o job em andamento antes de sair,
+# então um deploy não corta um job pela metade.
+KillSignal=SIGTERM
+TimeoutStopSec=95
+
+StandardOutput=append:/var/log/bendito-queue.log
+StandardError=append:/var/log/bendito-queue.log
+
+[Install]
+WantedBy=multi-user.target

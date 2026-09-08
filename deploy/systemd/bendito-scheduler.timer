@@ -1,0 +1,13 @@
+# Destino: /etc/systemd/system/bendito-scheduler.timer
+# Habilitar com: sudo systemctl enable --now bendito-scheduler.timer
+
+[Unit]
+Description=Bendito Organico - dispara o agendador a cada minuto
+
+[Timer]
+OnCalendar=*:0/1
+AccuracySec=1s
+Persistent=false
+
+[Install]
+WantedBy=timers.target
