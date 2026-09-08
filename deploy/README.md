@@ -14,13 +14,38 @@ Publicação em VPS Hostinger (Ubuntu/Debian + Nginx + PHP-FPM), domínio
 | Arquivo | Para quê |
 |---|---|
 | `setup-servidor.sh` | Provisionamento inicial. Roda **uma vez**, como root. |
-| `deploy.sh` | Deploy e atualizações. Roda a cada nova versão, como `bendito`. |
+| `deploy.sh` | Deploy e atualizações. Roda a cada nova versão, como `bendito-organico`. |
 | `env.production.example` | Modelo do `.env` de produção (sem segredo nenhum). |
 | `nginx/bootstrap-http.conf` | Vhost temporário, só para o certbot validar o domínio. |
 | `nginx/benditoorganico.com.br.conf` | Vhost definitivo, com HTTPS. |
 | `php-fpm/bendito-organico.conf` | Pool PHP-FPM exclusivo deste site. |
 | `systemd/bendito-queue.service` | Worker da fila. |
 | `systemd/bendito-scheduler.*` | Agendador do Laravel (preventivo). |
+
+---
+
+## Os usuários envolvidos
+
+| Usuário | Faz o quê | Quando é usado |
+|---|---|---|
+| `root` | Provisionamento inicial: cria o usuário, instala vhost, pool e serviços | **Só no passo 2**, uma vez |
+| `bendito-organico` | Dono dos arquivos, dono do processo PHP-FPM, dono do worker de fila e conta de SSH do deploy | Todo o resto, sempre |
+| `www-data` | Só o nginx, que lê `public/` | Nunca por você |
+
+O deploy **não** roda como root, e o `deploy.sh` recusa se você tentar. O
+motivo é concreto: composer, npm e artisan criariam arquivos pertencentes a
+root em `vendor/`, `node_modules/`, `storage/` e `bootstrap/cache/`, e o
+PHP-FPM — que roda como `bendito-organico` — passaria a receber "permission
+denied" em produção. É o tipo de problema que aparece só depois, em página de
+erro do cliente.
+
+O nome vai em minúsculas (`bendito-organico`) porque o `adduser` do
+Debian/Ubuntu valida contra `NAME_REGEX` (`^[a-z][-a-z0-9_]*$`) e recusa
+maiúsculas sem `--allow-bad-names`.
+
+`bendito-organico` tem `sudo` para exatamente seis comandos — `start`, `stop` e
+`restart` das duas unidades systemd deste site — e nada mais. Para tudo o que
+sai disso, você volta ao root de propósito.
 
 ---
 
@@ -71,15 +96,33 @@ são enviados à parte, nos passos 4 e 5.
 
 ## Passo 2 — Provisionar o servidor
 
+Esta é a **única** etapa que usa o root.
+
 ```bash
 ssh root@SEU_IP
 git clone https://github.com/grupomartinscomunicacao/bendito-organico.git /tmp/bendito-setup
-sudo bash /tmp/bendito-setup/deploy/setup-servidor.sh
+bash /tmp/bendito-setup/deploy/setup-servidor.sh
 ```
 
-O script cria o usuário `bendito`, clona o projeto em
+O script cria o usuário de deploy `bendito-organico`, clona o projeto em
 `/var/www/benditoorganico.com.br`, instala o pool PHP-FPM e o vhost, emite o
-certificado e registra os serviços de fila.
+certificado e liga os serviços de fila.
+
+**Chave SSH.** Por padrão o script copia as chaves que já autenticam o root,
+então você entra como `bendito-organico` com a mesma chave de sempre. Para usar
+outra chave:
+
+```bash
+SSH_PUBKEY="ssh-ed25519 AAAA... voce@maquina" bash /tmp/bendito-setup/deploy/setup-servidor.sh
+```
+
+Se o root da sua VPS entra por **senha** (padrão da Hostinger), não há chave
+para copiar. O script avisa e a conta fica sem acesso até você rodar, da sua
+máquina:
+
+```powershell
+ssh-copy-id -i ~/.ssh/id_ed25519.pub bendito-organico@SEU_IP
+```
 
 **Ele só cria arquivos novos.** Se algum destino já existir, avisa e segue sem
 sobrescrever. E valida (`nginx -t`, `php-fpm -t`) antes de qualquer reload: se
@@ -90,13 +133,24 @@ recarregar nada** — nenhum domínio cai.
 
 ## Passo 3 — Criar o `.env` de produção
 
+A partir daqui, tudo é feito como `bendito-organico`. **Antes de fechar a
+sessão root**, abra outra aba e confirme que o acesso funciona:
+
+```bash
+ssh bendito-organico@SEU_IP
+```
+
+Já conectado como ele:
+
 ```bash
 cd /var/www/benditoorganico.com.br
-sudo -u bendito -H cp deploy/env.production.example .env
-sudo -u bendito -H php artisan key:generate
-sudo -u bendito -H chmod 640 .env
-sudo -u bendito -H nano .env
+cp deploy/env.production.example .env
+php artisan key:generate
+chmod 640 .env
+nano .env
 ```
+
+Nenhum `sudo` aqui: os arquivos já pertencem a este usuário.
 
 Revise antes de sair:
 
@@ -124,27 +178,29 @@ o arquivo no meio de uma escrita) e gere uma cópia consistente:
 ```powershell
 cd C:\Users\teste\OneDrive\Desktop\PROJETOS\bendito-organico
 sqlite3 database/database.sqlite ".backup 'database/deploy-inicial.sqlite'"
-scp database/deploy-inicial.sqlite root@SEU_IP:/tmp/database.sqlite
+scp database/deploy-inicial.sqlite `
+    bendito-organico@SEU_IP:/var/www/benditoorganico.com.br/database/database.sqlite
 ```
+
+Copiar como `bendito-organico` já entrega o arquivo com o dono certo — sem
+passar por `/tmp` e sem `chown` depois.
 
 > Sem o `sqlite3.exe` no Windows, dá para copiar `database/database.sqlite`
 > direto — mas só com o servidor local **parado**. O banco roda em modo WAL, e
 > um `cp` com escrita em andamento pode gerar um arquivo corrompido.
 
-No **servidor**:
+No **servidor**, como `bendito-organico`:
 
 ```bash
-install -o bendito -g bendito -m 664 /tmp/database.sqlite \
-    /var/www/benditoorganico.com.br/database/database.sqlite
-rm /tmp/database.sqlite
+cd /var/www/benditoorganico.com.br
 
 # O SQLite grava os arquivos -wal e -shm ao lado do banco: a PASTA também
 # precisa ser gravável, não só o arquivo.
-chown bendito:bendito /var/www/benditoorganico.com.br/database
-chmod 775 /var/www/benditoorganico.com.br/database
+chmod 664 database/database.sqlite
+chmod 775 database
 
 # Confere que veio íntegro:
-sudo -u bendito -H sqlite3 /var/www/benditoorganico.com.br/database/database.sqlite \
+sqlite3 database/database.sqlite \
     "PRAGMA integrity_check; SELECT COUNT(*) || ' produtos' FROM products;"
 ```
 
@@ -158,35 +214,44 @@ catálogo vêm de `public/images/products`, que **é** versionada. Se você tive
 subido fotos pelo painel desde então:
 
 ```powershell
-scp -r storage/app/public/products/* root@SEU_IP:/tmp/produtos/
-```
-
-```bash
-mkdir -p /var/www/benditoorganico.com.br/storage/app/public/products
-cp /tmp/produtos/* /var/www/benditoorganico.com.br/storage/app/public/products/
-chown -R bendito:bendito /var/www/benditoorganico.com.br/storage/app/public
+scp -r storage/app/public/products/* `
+    bendito-organico@SEU_IP:/var/www/benditoorganico.com.br/storage/app/public/products/
 ```
 
 ---
 
 ## Passo 6 — Primeiro deploy
 
+Como `bendito-organico`:
+
 ```bash
-sudo -u bendito -H bash -c "cd /var/www/benditoorganico.com.br && ./deploy/deploy.sh"
+cd /var/www/benditoorganico.com.br
+./deploy/deploy.sh
 ```
 
 O script faz backup do banco, instala dependências, compila os assets do Vite,
-roda as migrations, cria o link do storage e reconstrói os caches.
+roda as migrations, cria o link do storage e reconstrói os caches. Não pede
+`sudo` em passo nenhum.
+
+Se você tentar rodá-lo como root, ele **recusa** — e é de propósito: composer,
+npm e artisan criariam arquivos pertencentes a root em `vendor/`,
+`node_modules/`, `storage/` e `bootstrap/cache/`, e o PHP-FPM (que roda como
+`bendito-organico`) passaria a levar "permission denied" em produção.
 
 ---
 
 ## Passo 7 — Ligar fila e agendador
 
+O `setup-servidor.sh` já habilitou os dois no boot. Só falta reiniciar o
+worker para ele carregar o código que acabou de subir:
+
 ```bash
-sudo systemctl enable --now bendito-queue.service
-sudo systemctl enable --now bendito-scheduler.timer
+sudo systemctl restart bendito-queue.service
 systemctl status bendito-queue --no-pager
 ```
+
+`bendito-organico` pode dar `start`, `stop` e `restart` nesses dois serviços
+via sudo — e nada além disso. O `status` nem precisa de sudo.
 
 O worker não é opcional: `QUEUE_CONNECTION=database` e as notificações de
 pedido pago e de contato implementam `ShouldQueue`. Sem ele, os jobs entram na
@@ -231,11 +296,13 @@ No navegador, com o cadeado aberto: home, `/produtos`, uma página de produto,
 ## Atualizações depois disso
 
 ```bash
-sudo -u bendito -H bash -c "cd /var/www/benditoorganico.com.br && ./deploy/deploy.sh"
+ssh bendito-organico@SEU_IP
+cd /var/www/benditoorganico.com.br
+./deploy/deploy.sh
 ```
 
-Só isso. O script põe o site em manutenção, atualiza, e sai da manutenção
-mesmo se algum passo falhar no meio.
+Só isso — sem root, sem sudo. O script põe o site em manutenção, atualiza, e
+sai da manutenção mesmo se algum passo falhar no meio.
 
 ---
 
@@ -243,15 +310,35 @@ mesmo se algum passo falhar no meio.
 
 Por que os outros domínios da VPS não são afetados:
 
-**Usuário próprio.** O site roda como `bendito`, não como `www-data`. Os
-arquivos dos outros domínios não são legíveis por esse usuário, então um
-problema aqui fica contido aqui.
+**Usuário próprio, sem root.** O site roda como `bendito-organico`, não como
+`www-data` nem como root. Os arquivos dos outros domínios não são legíveis por
+esse usuário, então um problema aqui fica contido aqui. O mesmo usuário faz os
+três papéis — dono dos arquivos, dono do processo PHP-FPM e conta de SSH do
+deploy — que é o modelo do Laravel Forge e o que mantém a propriedade dos
+arquivos coerente do clone ao worker de fila.
+
+**Sudo restrito a seis comandos.** `/etc/sudoers.d/bendito-organico` permite
+apenas `start`, `stop` e `restart` das duas unidades **deste** site, sem
+curinga nenhum. O deploy em si não usa sudo. Não é escalada de privilégio: as
+units são de root mas rodam com `User=bendito-organico`, então reiniciá-las não
+executa nada como root.
+
+`systemctl status` e `journalctl` ficaram deliberadamente **fora** dessa lista:
+os dois abrem um pager, e de dentro do `less` dá para escapar para um shell —
+que ali seria root. Nenhum dos dois precisa de sudo mesmo.
 
 **Pool PHP-FPM dedicado.** `bendito-organico.conf` cria um pool separado, com
 socket próprio (`/run/php/bendito-organico.sock`). O pool `www` que serve os
 outros sites continua intacto: mesmos limites, mesmos processos. Um pico de
 tráfego nesta loja não consome os workers dos vizinhos. O `open_basedir` do
 pool ainda impede que um script daqui leia `/var/www` de outro domínio.
+
+**`open_basedir` protegendo a chave SSH.** Com um usuário só fazendo deploy e
+rodando o PHP, a pergunta óbvia é: um RCE no PHP conseguiria escrever em
+`/home/bendito-organico/.ssh/authorized_keys` e virar acesso SSH permanente?
+Não — o `open_basedir` do pool confina o PHP a `/var/www/benditoorganico.com.br`
+(mais `/tmp`, `/usr/share/php` e `/etc/ssl/certs`). O home do usuário, onde
+mora a chave, está fora desse alcance. É a razão de a linha continuar lá.
 
 **Vhost isolado.** Arquivo novo em `sites-available`, sem `default_server`, com
 `server_name` fechado apenas em `benditoorganico.com.br` e `www`. Nenhum
@@ -265,6 +352,12 @@ nenhuma.
 antes de qualquer `reload`, e abortam desfazendo o que criaram se a validação
 falhar. E usam sempre `reload` (gracioso), nunca `restart`.
 
+**Nada de mexer no SSH.** Os scripts não encostam em `/etc/ssh/sshd_config`.
+Desabilitar login de root é uma boa ideia, mas é decisão sua e vale para a VPS
+inteira — inclusive para como você administra os outros domínios. Se for
+fazer, faça depois de confirmar que `ssh bendito-organico@SEU_IP` funciona, e
+sem fechar a sessão root até testar.
+
 O único momento em que um serviço compartilhado é tocado é o `systemctl reload`
 do nginx e do PHP-FPM. Reload é gracioso: as conexões em andamento terminam e
 os outros sites não perdem uma requisição sequer.
@@ -276,54 +369,86 @@ os outros sites não perdem uma requisição sequer.
 **`nginx -t` falha** — nada foi recarregado, os outros domínios seguem no ar.
 Leia a mensagem, corrija, teste de novo.
 
-**Reverter o site inteiro:**
+**Reverter o site inteiro** — como root (o usuário de deploy não tem sudo para
+mexer no nginx, de propósito):
 
 ```bash
-sudo rm /etc/nginx/sites-enabled/benditoorganico.com.br
-sudo nginx -t && sudo systemctl reload nginx
+rm /etc/nginx/sites-enabled/benditoorganico.com.br
+nginx -t && systemctl reload nginx
 ```
 
 Os outros domínios voltam ao estado exato de antes.
 
-**Erro 502 Bad Gateway** — o pool PHP-FPM não subiu:
+**Erro 502 Bad Gateway** — o pool PHP-FPM não subiu. Como `bendito-organico`:
 
 ```bash
-sudo systemctl status php8.3-fpm --no-pager
-ls -l /run/php/bendito-organico.sock
-sudo tail -50 /var/log/php-fpm-bendito-organico.log
+systemctl status php8.3-fpm --no-pager   # não precisa de sudo
+ls -l /run/php/bendito-organico.sock     # o socket tem que existir
 ```
 
-**Erro 500** — com `APP_DEBUG=false` o detalhe fica no log:
+O log do pool é de root, então este precisa de uma sessão root:
 
 ```bash
-sudo -u bendito -H tail -50 /var/www/benditoorganico.com.br/storage/logs/laravel-*.log
-sudo tail -30 /var/log/nginx/benditoorganico.error.log
+tail -50 /var/log/php-fpm-bendito-organico.log
+```
+
+**Erro 500** — com `APP_DEBUG=false` o detalhe fica no log. Como
+`bendito-organico`:
+
+```bash
+tail -50 /var/www/benditoorganico.com.br/storage/logs/laravel-*.log
+```
+
+E, numa sessão root, o lado do nginx:
+
+```bash
+tail -30 /var/log/nginx/benditoorganico.error.log
 ```
 
 **"database is locked" ou "readonly database"** — permissão da pasta
 `database/`, não do arquivo (o SQLite precisa criar `-wal` e `-shm` ao lado):
 
 ```bash
-sudo chown -R bendito:bendito /var/www/benditoorganico.com.br/database
-sudo chmod 775 /var/www/benditoorganico.com.br/database
-sudo chmod 664 /var/www/benditoorganico.com.br/database/database.sqlite
+cd /var/www/benditoorganico.com.br
+chmod 775 database
+chmod 664 database/database.sqlite
+ls -la database/          # tudo deve pertencer a bendito-organico
 ```
+
+**"Permission denied" no PHP-FPM depois de mexer no servidor como root** —
+algum arquivo ficou pertencendo a root. Como root, devolva tudo ao usuário do
+site:
+
+```bash
+chown -R bendito-organico:bendito-organico /var/www/benditoorganico.com.br
+chmod 775 /var/www/benditoorganico.com.br/database
+```
+
+**Não consigo entrar como `bendito-organico`** — a conta não tem senha, só
+chave. Entre como root e confira:
+
+```bash
+ls -la /home/bendito-organico/.ssh/          # 700 na pasta, 600 no authorized_keys
+cat /home/bendito-organico/.ssh/authorized_keys
+```
+
+Para adicionar uma chave, da sua máquina:
+`ssh-copy-id -i ~/.ssh/id_ed25519.pub bendito-organico@SEU_IP`
 
 **Restaurar o banco** — o `deploy.sh` guarda os 10 backups mais recentes:
 
 ```bash
-ls -lt /var/www/benditoorganico.com.br/storage/backups/
-sudo systemctl stop bendito-queue
-sudo -u bendito -H cp storage/backups/database-AAAAMMDD-HHMMSS.sqlite \
-    database/database.sqlite
-sudo systemctl start bendito-queue
+ls -lt storage/backups/
+sudo systemctl stop bendito-queue.service
+cp storage/backups/database-AAAAMMDD-HHMMSS.sqlite database/database.sqlite
+sudo systemctl start bendito-queue.service
 ```
 
 **Mudou o `.env` e nada aconteceu** — em produção o `.env` fica em cache:
 
 ```bash
-sudo -u bendito -H php artisan config:cache
-sudo -u bendito -H php artisan queue:restart
+php artisan config:cache
+php artisan queue:restart
 ```
 
 ---
@@ -337,8 +462,9 @@ sem elas, mas cada uma tem consequência:
 funcionam; a etapa de **pagamento falha**. Para ativar:
 
 ```bash
-sudo -u bendito -H nano .env    # MERCADOPAGO_ACCESS_TOKEN, _PUBLIC_KEY, _WEBHOOK_SECRET
-sudo -u bendito -H php artisan config:cache
+nano .env    # MERCADOPAGO_ACCESS_TOKEN, _PUBLIC_KEY, _WEBHOOK_SECRET
+php artisan config:cache
+php artisan queue:restart
 ```
 
 E cadastre no painel do Mercado Pago (Webhooks → Configurar notificações):

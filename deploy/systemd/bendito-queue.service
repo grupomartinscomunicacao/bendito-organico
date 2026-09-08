@@ -7,8 +7,9 @@
 # (OrderPaidNotification, ContactMessageNotification). Sem este serviço os
 # jobs entram na tabela "jobs" e nunca saem.
 #
-# Roda como "bendito", o mesmo usuário do pool PHP-FPM, para que os arquivos
-# que ele escreve (logs, cache) continuem legíveis pelo site.
+# Roda como "bendito-organico", o mesmo usuário do pool PHP-FPM e do deploy,
+# para que os arquivos que ele escreve (logs, cache) continuem legíveis pelo
+# site — e para que um deploy não vire dono de arquivo que o worker não escreve.
 # ---------------------------------------------------------------------------
 
 [Unit]
@@ -17,8 +18,8 @@ After=network.target
 
 [Service]
 Type=simple
-User=bendito
-Group=bendito
+User=bendito-organico
+Group=bendito-organico
 WorkingDirectory=/var/www/benditoorganico.com.br
 
 # --max-time recicla o processo de hora em hora: evita que vazamento de

@@ -15,8 +15,8 @@ Description=Bendito Organico - agendador Laravel
 
 [Service]
 Type=oneshot
-User=bendito
-Group=bendito
+User=bendito-organico
+Group=bendito-organico
 WorkingDirectory=/var/www/benditoorganico.com.br
 ExecStart=/usr/bin/php /var/www/benditoorganico.com.br/artisan schedule:run
 StandardOutput=append:/var/log/bendito-scheduler.log

@@ -2,16 +2,19 @@
 # ---------------------------------------------------------------------------
 # Bendito Orgânico — deploy / atualização
 #
-# Uso (como o usuário "bendito", dentro da pasta do site):
+# Uso — conecte como o usuário de deploy, NÃO como root:
+#     ssh bendito-organico@SEU_IP
 #     cd /var/www/benditoorganico.com.br
 #     ./deploy/deploy.sh
 #
 # É idempotente: pode rodar quantas vezes quiser. Não toca em nada fora da
 # pasta do site — nginx, PHP-FPM e os outros domínios da VPS ficam intactos.
+# Não precisa de sudo em nenhum passo.
 # ---------------------------------------------------------------------------
 
 set -euo pipefail
 
+APP_USER="bendito-organico"
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$APP_DIR"
 
@@ -25,6 +28,24 @@ die()  { printf '\n\033[1;31m ERRO: %s\033[0m\n' "$*" >&2; exit 1; }
 # --- Pré-condições ---------------------------------------------------------
 [ -f "$APP_DIR/artisan" ] || die "não parece a raiz do Laravel: $APP_DIR"
 [ -f "$APP_DIR/.env" ]    || die ".env não existe. Copie de deploy/env.production.example primeiro."
+
+# Deploy como root é o erro que mais dá trabalho para desfazer: composer, npm e
+# artisan criam arquivo pertencendo a root em vendor/, node_modules/, storage/ e
+# bootstrap/cache/, e aí o PHP-FPM — que roda como $APP_USER — passa a receber
+# "permission denied" em produção. Por isso o script recusa em vez de avisar.
+if [ "$(id -u)" -eq 0 ]; then
+    die "não rode o deploy como root.
+    Conecte como o usuário de deploy:  ssh $APP_USER@SEU_IP
+    Ou, se já está no root:            sudo -u $APP_USER -H bash -c 'cd $APP_DIR && ./deploy/deploy.sh'"
+fi
+
+# Rodar como um usuário que não é o dono dá no mesmo problema, ao contrário:
+# os arquivos novos saem com o dono errado e o PHP-FPM não escreve neles.
+OWNER="$(stat -c '%U' "$APP_DIR/artisan")"
+if [ "$(id -un)" != "$OWNER" ]; then
+    die "você é '$(id -un)', mas os arquivos do site pertencem a '$OWNER'.
+    Rode o deploy como '$OWNER', senão os arquivos gerados ficam com o dono errado."
+fi
 
 grep -q '^APP_ENV=production' .env || warn "APP_ENV não está como production."
 grep -q '^APP_DEBUG=false'     .env || warn "APP_DEBUG não está false — corrija antes de abrir ao público."
